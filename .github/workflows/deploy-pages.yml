@@ -28,10 +28,17 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Assemble Pages artifact
+        run: |
+          rm -rf dist-pages
+          mkdir -p dist-pages/fund-price-forcast
+          cp -R pages/. dist-pages/
+          cp -R fund-price-forcast/site/. dist-pages/fund-price-forcast/
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./site
+          path: ./dist-pages
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -1,5 +1,7 @@
 exclude:
-  - backend/
+  - fund-price-forcast/backend/
+  - fund-price-forcast/infra/
+  - fund-price-forcast/site/
   - codex-notes/
   - README.md
   - .github/

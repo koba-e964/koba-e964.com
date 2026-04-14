@@ -1,9 +1,9 @@
-backend/node_modules/
-backend/dist/
-infra/node_modules/
-infra/cdk.out/
-infra/dist/
+fund-price-forcast/backend/node_modules/
+fund-price-forcast/backend/dist/
+fund-price-forcast/infra/node_modules/
+fund-price-forcast/infra/cdk.out/
+fund-price-forcast/infra/dist/
 .DS_Store
 .env
 .env.*
-site/local-config.js
+fund-price-forcast/site/local-config.js
