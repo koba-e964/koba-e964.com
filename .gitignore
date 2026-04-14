@@ -2,6 +2,7 @@ backend/node_modules/
 backend/dist/
 infra/node_modules/
 infra/cdk.out/
+infra/dist/
 .DS_Store
 .env
 .env.*
