@@ -6,9 +6,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test --import tsx"
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.901.0",
     "@neondatabase/serverless": "^0.10.4",
     "aws-lambda": "^1.0.7"
   },

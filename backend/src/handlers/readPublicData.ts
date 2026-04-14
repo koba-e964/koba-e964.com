@@ -6,7 +6,7 @@ import { getPublicLatestPayload } from "../db.js";
 export async function handler(
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyStructuredResultV2> {
-  const config = getConfig();
+  const config = await getConfig();
   const fundCode = event.pathParameters?.code || config.fundCode;
   const payload = await getPublicLatestPayload(config.databaseUrl, fundCode);
 

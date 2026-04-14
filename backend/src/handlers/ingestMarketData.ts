@@ -6,7 +6,7 @@ import { fetchMufgFx } from "../sources/mufg.js";
 import { fetchYahooSp500 } from "../sources/yahoo.js";
 
 export const handler: ScheduledHandler = async () => {
-  const config = getConfig();
+  const config = await getConfig();
   const [sp500, fx] = await Promise.all([
     fetchYahooSp500(config.sp500SourceUrl),
     fetchMufgFx(config.mufgFxUrl),

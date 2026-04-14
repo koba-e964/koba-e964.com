@@ -20,7 +20,7 @@ function mapFund(row: Record<string, unknown>): FundRecord {
 }
 
 export const handler: ScheduledHandler = async () => {
-  const config = getConfig();
+  const config = await getConfig();
   const sql = getSql(config.databaseUrl);
 
   const [fund] = await sql`select * from funds where code = ${config.fundCode} limit 1`;

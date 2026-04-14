@@ -1,0 +1,6 @@
+{
+  "app": "node --loader ts-node/esm bin/fund-price-forecast.ts",
+  "context": {
+    "@aws-cdk/aws-lambda-nodejs:useLatestRuntimeVersion": true
+  }
+}

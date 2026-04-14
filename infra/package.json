@@ -1,0 +1,27 @@
+{
+  "name": "fund-price-forecast-infra",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "bootstrap-neon": "node ./scripts/bootstrap-neon.mjs",
+    "apply-schema": "node ./scripts/apply-schema.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "aws-cdk-lib": "^2.196.0",
+    "constructs": "^10.4.2",
+    "source-map-support": "^0.5.21"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "aws-cdk": "^2.1013.0",
+    "esbuild": "^0.25.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
