@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ファンド価格予測くん</title>
+    <meta
+      name="description"
+      content="ファンドの基準価額について、公式値と推定値を分けて表示する GitHub Pages 向けサイト。"
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Fund Price Forecast</p>
+        <h1>ファンド価格予測くん</h1>
+        <p class="hero-copy">
+          基準価額の公式値と、S&amp;P 500 と TTM から計算した推定値を分けて見せる。
+          ルーティングはファンド非依存、データ源とモデルの状態は画面に明示する。
+        </p>
+      </header>
+
+      <main id="app" class="layout" aria-live="polite">
+        <section class="panel loading-panel">
+          <p>データを読み込み中です。</p>
+        </section>
+      </main>
+
+      <template id="app-template">
+        <section class="panel primary">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Selected Fund</p>
+              <h2 data-field="fund-name"></h2>
+            </div>
+            <span class="pill" data-field="prediction-status"></span>
+          </div>
+          <p class="muted" data-field="fund-meta"></p>
+          <div class="metric-grid">
+            <article class="metric-card">
+              <p class="metric-label">最新の公式基準価額</p>
+              <p class="metric-value" data-field="official-nav"></p>
+              <p class="metric-sub" data-field="official-date"></p>
+            </article>
+            <article class="metric-card accent">
+              <p class="metric-label">最新の推定値</p>
+              <p class="metric-value" data-field="predicted-nav"></p>
+              <p class="metric-sub" data-field="prediction-note"></p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Model Inputs</p>
+              <h2>上流データ</h2>
+            </div>
+            <p class="muted">片方だけ更新された場合も状態を分けて表示する。</p>
+          </div>
+          <div class="source-grid">
+            <article class="source-card">
+              <p class="source-title">S&amp;P 500</p>
+              <p class="source-value" data-field="sp500-value"></p>
+              <p class="source-meta" data-field="sp500-meta"></p>
+            </article>
+            <article class="source-card">
+              <p class="source-title">USD/JPY TTM</p>
+              <p class="source-value" data-field="ttm-value"></p>
+              <p class="source-meta" data-field="ttm-meta"></p>
+            </article>
+            <article class="source-card">
+              <p class="source-title">Trust Fee</p>
+              <p class="source-value" data-field="fee-value"></p>
+              <p class="source-meta">長期予測では年率から日割り換算して補正</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2>直近の履歴</h2>
+            </div>
+            <p class="muted">公式値と推定値を同じ表に混ぜず、種別を持たせる。</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日付</th>
+                  <th>種別</th>
+                  <th>値</th>
+                  <th>備考</th>
+                </tr>
+              </thead>
+              <tbody data-field="history-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Caveats</p>
+              <h2>モデル前提</h2>
+            </div>
+          </div>
+          <ul class="caveats" data-field="assumptions"></ul>
+        </section>
+      </template>
+    </div>
+
+    <script src="./local-config.js"></script>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

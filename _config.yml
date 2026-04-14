@@ -1,0 +1,6 @@
+exclude:
+  - backend/
+  - codex-notes/
+  - README.md
+  - .github/
+  - .gitignore

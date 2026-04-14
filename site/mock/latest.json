@@ -1,0 +1,64 @@
+{
+  "fund": {
+    "code": "253266",
+    "displayName": "eMAXIS Slim 米国株式（S&P500）",
+    "providerName": "三菱UFJアセットマネジメント",
+    "annualFeeRate": 0.00093
+  },
+  "latestOfficialNav": {
+    "businessDate": "2026-04-13",
+    "nav": 35510,
+    "fetchedAt": "2026-04-13T10:15:00+09:00"
+  },
+  "latestPrediction": {
+    "businessDate": "2026-04-14",
+    "status": "estimated_complete_inputs",
+    "predictedNav": 35620,
+    "confidenceNote": "S&P 500 終値と TTM が揃っているため近似値を計算済み"
+  },
+  "latestSources": {
+    "sp500": {
+      "tradeDate": "2026-04-10",
+      "closeValue": 5220.44,
+      "sourceName": "Yahoo!ファイナンス",
+      "fetchedAt": "2026-04-13T07:05:00+09:00"
+    },
+    "ttm": {
+      "businessDate": "2026-04-13",
+      "tts": 145.88,
+      "ttb": 143.88,
+      "ttm": 144.88
+    }
+  },
+  "history": [
+    {
+      "businessDate": "2026-04-11",
+      "kind": "official",
+      "value": 35280,
+      "note": "公式基準価額"
+    },
+    {
+      "businessDate": "2026-04-12",
+      "kind": "official",
+      "value": 35410,
+      "note": "公式基準価額"
+    },
+    {
+      "businessDate": "2026-04-13",
+      "kind": "official",
+      "value": 35510,
+      "note": "公式基準価額"
+    },
+    {
+      "businessDate": "2026-04-14",
+      "kind": "estimated_complete_inputs",
+      "value": 35620,
+      "note": "v1 モデルによる推定値"
+    }
+  ],
+  "assumptions": [
+    "初版モデルは 直近公式基準価額 x S&P 500 比率 x TTM 比率 で近似する。",
+    "一日先の推定では信託報酬の影響を無視し、長期では年率から日割り補正を入れる。",
+    "配当込み円換算ベースとのズレは後続の履歴検証で補正する前提。"
+  ]
+}
