@@ -3,7 +3,13 @@ fund-price-forecast/backend/dist/
 fund-price-forecast/infra/node_modules/
 fund-price-forecast/infra/cdk.out/
 fund-price-forecast/infra/dist/
+fund-price-forecast/backend/.env
+fund-price-forecast/backend/.env.local
+fund-price-forecast/infra/.env
+fund-price-forecast/infra/.env.local
 .DS_Store
 .env
 .env.*
+!.env.example
+!*.env.example
 fund-price-forecast/site/local-config.js
