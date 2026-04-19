@@ -31,9 +31,9 @@ jobs:
       - name: Assemble Pages artifact
         run: |
           rm -rf dist-pages
-          mkdir -p dist-pages/fund-price-forcast
+          mkdir -p dist-pages/fund-price-forecast
           cp -R pages/. dist-pages/
-          cp -R fund-price-forcast/site/. dist-pages/fund-price-forcast/
+          cp -R fund-price-forecast/site/. dist-pages/fund-price-forecast/
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4

@@ -6,9 +6,9 @@
 
 - `pages/`
   - GitHub Pages に配信するルート公開物
-- `fund-price-forcast/`
+- `fund-price-forecast/`
   - ファンド価格予測くん一式
-  - `site/`: `/fund-price-forcast/` に配信する静的ページ
+  - `site/`: `/fund-price-forecast/` に配信する静的ページ
   - `backend/`: Lambda/Neon バックエンド
   - `infra/`: AWS CDK と Neon bootstrap 用スクリプト
 - `codex-notes/`
@@ -16,15 +16,15 @@
 
 ## 現在の公開コンテンツ
 
-- `/fund-price-forcast/`
+- `/fund-price-forecast/`
   - ファンド価格予測くん
-  - 詳細は [fund-price-forcast/README.md](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forcast/README.md)
+  - 詳細は [fund-price-forecast/README.md](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/README.md)
 
 ## GitHub Pages
 
-- `.github/workflows/deploy-pages.yml` で `pages/` と `fund-price-forcast/site/` を組み立てて Pages に配信します。
+- `.github/workflows/deploy-pages.yml` で `pages/` と `fund-price-forecast/site/` を組み立てて Pages に配信します。
 - `pages/` 直下にはトップページ、`CNAME`、`ads.txt` を置きます。
-- アプリごとの公開物は `fund-price-forcast/` 配下に持ち、workflow で公開パスへ配置します。
+- アプリごとの公開物は `fund-price-forecast/` 配下に持ち、workflow で公開パスへ配置します。
 
 ## 運用メモ
 
