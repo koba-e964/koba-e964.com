@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            fund-price-forecast/package-lock.json
+            fund-price-forecast/backend/package-lock.json
+
+      - name: Install Tooling Dependencies
+        working-directory: fund-price-forecast
+        run: npm ci
+
+      - name: Install Backend Dependencies
+        working-directory: fund-price-forecast/backend
+        run: npm ci
+
+      - name: Check Formatting
+        working-directory: fund-price-forecast
+        run: npm run format:check
+
+      - name: Run Linter
+        working-directory: fund-price-forecast
+        run: npm run lint
+
+      - name: Run Type Check
+        working-directory: fund-price-forecast/backend
+        run: npm run check
+
+      - name: Run Tests
+        working-directory: fund-price-forecast/backend
+        run: npm test
