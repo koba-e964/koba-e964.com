@@ -29,8 +29,9 @@ export function parseYahooSp500Html(
   fetchedAt: string,
 ): MarketIndexDailyRecord {
   const priceBoardSection =
-    html.match(/<section id="mainIndexPriceBoard"[\s\S]{0,4000}<\/section>/)?.[0] ??
-    html;
+    html.match(
+      /<section id="mainIndexPriceBoard"[\s\S]{0,4000}<\/section>/,
+    )?.[0] ?? html;
   const priceMatch =
     priceBoardSection.match(
       /(?:現在値|前日終値|終値)[^0-9]{0,30}([0-9][0-9,]*\.[0-9]+)/,
