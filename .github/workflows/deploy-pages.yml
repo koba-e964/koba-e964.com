@@ -34,6 +34,13 @@ jobs:
           mkdir -p dist-pages/fund-price-forecast
           cp -R pages/. dist-pages/
           cp -R fund-price-forecast/site/. dist-pages/fund-price-forecast/
+          cat > dist-pages/fund-price-forecast/local-config.js <<EOF
+          window.APP_CONFIG = {
+            apiBaseUrl: ${API_BASE_URL_JSON},
+          };
+          EOF
+        env:
+          API_BASE_URL_JSON: ${{ toJson(vars.PAGES_API_BASE_URL != '' && vars.PAGES_API_BASE_URL || 'https://example.execute-api.ap-northeast-1.amazonaws.com/prod') }}
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4

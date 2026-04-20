@@ -25,6 +25,39 @@ window.APP_CONFIG = {
 };
 ```
 
+GitHub Pages 本番では `local-config.js` を commit せず、Actions workflow が `vars.PAGES_API_BASE_URL` から生成します。
+
+- GitHub repository settings
+- `Settings -> Secrets and variables -> Actions -> Variables`
+- `Repository variables` を使う
+- `PAGES_API_BASE_URL`
+  - 値: 公開用 API の base URL (`https://XXXXXX.execute-api.ap-northeast-1.amazonaws.com`)
+
+この variable が未設定なら、Pages はダミー URL を埋め込み、画面は `mock/latest.json` に fallback します。
+
+### ローカルで画面を見る
+
+開発中の価格ページをそのまま見るなら、repo root で `python3 -m http.server 8000` を起動して次を開きます。
+
+- `http://localhost:8000/fund-price-forecast/site/`
+
+本番と同じ URL 構成で見たいときは、Pages artifact を組み立ててから `dist-pages/` を配信します。
+
+```sh
+cd /Users/kobas-mac/srcview/koba-e964.com
+rm -rf dist-pages
+mkdir -p dist-pages/fund-price-forecast
+cp -R pages/. dist-pages/
+cp -R fund-price-forecast/site/. dist-pages/fund-price-forecast/
+cd dist-pages
+python3 -m http.server 8000
+```
+
+このときの確認先は次です。
+
+- `http://localhost:8000/fund-price-forecast/`
+  - 本番の `https://koba-e964.com/fund-price-forecast/` 相当
+
 ## バックエンド
 
 ### 目的
