@@ -2,6 +2,14 @@ const DEFAULT_API_BASE_URL = "https://example.execute-api.ap-northeast-1.amazona
 const DEFAULT_FUND_CODE = "253266";
 const FALLBACK_PATH = "./mock/latest.json";
 
+class DataNotReadyError extends Error {
+  constructor(fundCode) {
+    super(`fund ${fundCode} is not ready yet`);
+    this.name = "DataNotReadyError";
+    this.fundCode = fundCode;
+  }
+}
+
 async function loadData() {
   const params = new URLSearchParams(window.location.search);
   const fundCode = params.get("fund") || DEFAULT_FUND_CODE;
@@ -11,11 +19,26 @@ async function loadData() {
   try {
     const response = await fetch(apiUrl, { headers: { accept: "application/json" } });
     if (!response.ok) {
+      let errorPayload = null;
+      try {
+        errorPayload = await response.json();
+      } catch {
+        // Ignore JSON parse failure and fall through to generic handling.
+      }
+
+      if (response.status === 503 && errorPayload?.error === "data_not_ready") {
+        throw new DataNotReadyError(errorPayload.fundCode || fundCode);
+      }
+
       throw new Error(`API request failed with ${response.status}`);
     }
     const payload = await response.json();
     return { payload, sourceLabel: "live-api" };
   } catch (error) {
+    if (error instanceof DataNotReadyError) {
+      throw error;
+    }
+
     const fallbackResponse = await fetch(FALLBACK_PATH);
     if (!fallbackResponse.ok) {
       throw error;
@@ -137,11 +160,20 @@ function renderError(error) {
   const app = document.querySelector("#app");
   const section = document.createElement("section");
   section.className = "panel error-panel";
-  section.innerHTML = `
-    <h2>データを表示できませんでした</h2>
-    <p class="muted">バックエンド URL か静的 fallback データを確認してください。</p>
-    <p class="muted">${error.message}</p>
-  `;
+  if (error instanceof DataNotReadyError) {
+    section.innerHTML = `
+      <h2>まだ価格データを表示できません</h2>
+      <p class="muted">このファンドはまだ ingest されていません。</p>
+      <p class="muted">market data / fund NAV / prediction の投入が終わると本番データが表示されます。</p>
+      <p class="muted">fund code: ${error.fundCode}</p>
+    `;
+  } else {
+    section.innerHTML = `
+      <h2>データを表示できませんでした</h2>
+      <p class="muted">バックエンド URL か静的 fallback データを確認してください。</p>
+      <p class="muted">${error.message}</p>
+    `;
+  }
   app.replaceChildren(section);
 }
 
