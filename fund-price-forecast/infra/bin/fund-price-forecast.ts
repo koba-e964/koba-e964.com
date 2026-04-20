@@ -16,7 +16,7 @@ new FundPriceForecastStack(app, "FundPriceForecastStack", {
   fundCode: app.node.tryGetContext("fundCode") ?? "253266",
   fundSourceUrl:
     app.node.tryGetContext("fundSourceUrl") ??
-    "https://emaxis.am.mufg.jp/fund/253266.html",
+    "https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266",
   sp500SourceUrl:
     app.node.tryGetContext("sp500SourceUrl") ??
     "https://finance.yahoo.co.jp/quote/%5EGSPC",

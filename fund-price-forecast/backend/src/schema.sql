@@ -77,7 +77,7 @@ insert into funds (
   '253266',
   'eMAXIS Slim 米国株式（S&P500）',
   '三菱UFJアセットマネジメント',
-  'https://emaxis.am.mufg.jp/fund/253266.html',
+  'https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266',
   'S&P500 total return JPY proxy',
   0.00093
 )

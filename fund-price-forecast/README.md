@@ -63,6 +63,7 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 ### データ源メモ
 
 - FX は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
+- 公式基準価額は HTML ではなく、MUFG AM の JSON endpoint `https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266` をデフォルト取得先にしています。
 - API は `fund_nav_daily` / `fund_predictions_daily` / `market_index_daily` / `fx_daily` が揃うまで `503 data_not_ready` を返します。
 
 ## Infrastructure as Code
@@ -110,3 +111,23 @@ npm install
 npm run check
 npm test
 ```
+
+## ローカルで parser を試す
+
+deploy 前に source parser だけ手元で確認したいときは、`fund-price-forecast/backend/` で次を実行します。
+
+```sh
+npm run source:check -- fund
+npm run source:check -- fx
+npm run source:check -- sp500
+```
+
+必要なら URL を上書きできます。
+
+```sh
+FUND_SOURCE_URL='https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266' npm run source:check -- fund
+MUFG_FX_SOURCE_URL='https://www.murc-kawasesouba.jp/fx/index.php' npm run source:check -- fx
+SP500_SOURCE_URL='https://finance.yahoo.co.jp/quote/%5EGSPC' npm run source:check -- sp500
+```
+
+`fund` は `FUND_CODE` も上書きできます。

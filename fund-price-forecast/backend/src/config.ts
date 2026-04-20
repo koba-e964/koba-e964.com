@@ -67,7 +67,7 @@ export async function getConfig(): Promise<AppConfig> {
     ),
     fundSourceUrl: getRequiredEnv(
       "FUND_SOURCE_URL",
-      "https://emaxis.am.mufg.jp/fund/253266.html",
+      "https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266",
     ),
     fundCode: getRequiredEnv("FUND_CODE", "253266"),
   };
