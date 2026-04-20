@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -12,13 +12,17 @@ if (!databaseUrl) {
 const here = path.dirname(fileURLToPath(import.meta.url));
 const schemaPath = path.resolve(here, "../../backend/src/schema.sql");
 const schema = await readFile(schemaPath, "utf8");
-const sql = neon(databaseUrl);
+const pool = new Pool({ connectionString: databaseUrl });
 
-for (const statement of schema
-  .split(/;\s*\n/g)
-  .map((part) => part.trim())
-  .filter(Boolean)) {
-  await sql.query(statement);
+try {
+  for (const statement of schema
+    .split(/;\s*\n/g)
+    .map((part) => part.trim())
+    .filter(Boolean)) {
+    await pool.query(statement);
+  }
+} finally {
+  await pool.end();
 }
 
 console.log(`Applied schema from ${schemaPath}`);
