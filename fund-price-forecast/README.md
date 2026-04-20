@@ -73,11 +73,28 @@ AWS は CDK、Neon は公式 API を叩く bootstrap スクリプトで寄せて
 ### 手順
 
 1. `cd fund-price-forecast/infra && npm install`
-2. `NEON_API_KEY`, `NEON_PROJECT_ID`, `NEON_ROLE_PASSWORD` を入れて `npm run bootstrap-neon`
-3. 返ってきた接続 URI を AWS Secrets Manager の `fund-price-forecast/prod/database-url` に保存
-4. `DATABASE_URL=... npm run apply-schema`
-5. `npx cdk bootstrap && npx cdk deploy`
-6. CDK output の `PublicApiUrl` を `fund-price-forecast/site/local-config.js` に入れる
+2. `NEON_API_KEY`, `NEON_PROJECT_ID`, `NEON_ROLE_PASSWORD` を `fund-price-forecast/infra/.env` に入れる
+3. `.env` を読み込んで `npm run bootstrap-neon` を実行する
+
+```sh
+cd /Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/infra
+set -a; source .env; set +a; npm run bootstrap-neon
+```
+
+4. 返ってきた接続 URI を AWS Secrets Manager の `fund-price-forecast/prod/database-url` に保存
+5. `DATABASE_URL=... npm run apply-schema`
+6. `npx cdk bootstrap && npx cdk deploy`
+7. CDK output の `PublicApiUrl` を `fund-price-forecast/site/local-config.js` に入れる
+
+### AWS Secrets Manager
+
+- Secret name: `fund-price-forecast/prod/database-url`
+- Secret type: `Other type of secret`
+- Secret value は次のどちらでもよい
+  - plaintext の `postgresql://...`
+  - JSON の `{ "databaseUrl": "postgresql://..." }`
+
+一番迷わないのは `Other type of secret` を選んで plaintext で `databaseUrl` をそのまま保存するやり方です。
 
 ## テスト
 

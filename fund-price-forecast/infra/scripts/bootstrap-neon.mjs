@@ -58,7 +58,26 @@ async function resolveBranch() {
   return { id: created.branch.id, name: created.branch.name };
 }
 
-async function ensureDatabase(branch) {
+async function ensureReadWriteEndpoint(branch) {
+  const endpoints = await neon(`/projects/${projectId}/branches/${branch.id}/endpoints`, { method: "GET" });
+  const found = endpoints.endpoints.find((item) => item.type === "read_write");
+  if (found) {
+    return found;
+  }
+
+  const created = await neon(`/projects/${projectId}/endpoints`, {
+    method: "POST",
+    body: JSON.stringify({
+      endpoint: {
+        branch_id: branch.id,
+        type: "read_write",
+      },
+    }),
+  });
+  return created.endpoint;
+}
+
+async function ensureDatabase(branch, ownerName) {
   const databases = await neon(`/projects/${projectId}/branches/${branch.id}/databases`, { method: "GET" });
   const found = databases.databases.find((item) => item.name === databaseName);
   if (found) {
@@ -69,6 +88,7 @@ async function ensureDatabase(branch) {
     body: JSON.stringify({
       database: {
         name: databaseName,
+        owner_name: ownerName,
       },
     }),
   });
@@ -104,8 +124,9 @@ async function getConnectionUri(branch) {
 }
 
 const branch = await resolveBranch();
-const database = await ensureDatabase(branch);
+const endpoint = await ensureReadWriteEndpoint(branch);
 const role = await ensureRole(branch);
+const database = await ensureDatabase(branch, role.name);
 const databaseUrl = await getConnectionUri(branch);
 
 console.log(
@@ -114,6 +135,7 @@ console.log(
       projectId,
       branchId: branch.id,
       branchName: branch.name,
+      endpointId: endpoint.id,
       databaseName: database.name,
       roleName: role.name,
       databaseUrl,
