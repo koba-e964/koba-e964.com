@@ -28,14 +28,29 @@ export function parseYahooSp500Html(
   sourceUrl: string,
   fetchedAt: string,
 ): MarketIndexDailyRecord {
+  const priceBoardSection =
+    html.match(/<section id="mainIndexPriceBoard"[\s\S]{0,4000}<\/section>/)?.[0] ??
+    html;
   const priceMatch =
-    html.match(/(?:現在値|前日終値|終値)[^0-9]{0,30}([0-9][0-9,]*\.[0-9]+)/) ||
-    html.match(
+    priceBoardSection.match(
+      /(?:現在値|前日終値|終値)[^0-9]{0,30}([0-9][0-9,]*\.[0-9]+)/,
+    ) ||
+    priceBoardSection.match(
       /_CommonPriceBoard__price_[^"]*[\s\S]{0,200}?_StyledNumber__value_[^"]*">([0-9][0-9,]*\.[0-9]+)/,
     ) ||
+    priceBoardSection.match(
+      /_StyledNumber__value_[^"]*">([0-9][0-9,]*\.[0-9]+)<\/span>/,
+    ) ||
+    priceBoardSection.match(/([0-9][0-9,]*\.[0-9]+)\s*USD/) ||
     html.match(/([0-9][0-9,]*\.[0-9]+)\s*USD/);
 
   if (!priceMatch) {
+    console.error("Yahoo S&P 500 parse failed", {
+      sourceUrl,
+      titleSnippet:
+        html.match(/<title[^>]*>[\s\S]{0,160}<\/title>/i)?.[0] ?? null,
+      sectionSnippet: priceBoardSection.slice(0, 800),
+    });
     throw new Error("Unable to parse Yahoo S&P 500 HTML");
   }
 
