@@ -73,11 +73,13 @@ export const handler: ScheduledHandler = async () => {
     );
   }
 
+  const baseNavBusinessDate = normalizeDateOnly(baseNav.business_date);
+
   const prediction = buildPrediction({
     fund: mapFund(fund),
     baseNav: {
       fundCode: String(baseNav.fund_code),
-      businessDate: String(baseNav.business_date),
+      businessDate: baseNavBusinessDate,
       nav: Number(baseNav.nav),
       sourceName: String(baseNav.source_name),
       sourceUrl: String(baseNav.source_url),
@@ -88,7 +90,7 @@ export const handler: ScheduledHandler = async () => {
     targetIndex: targetIndex ? mapIndex(targetIndex) : null,
     baseFx: baseFx ? mapFx(baseFx) : null,
     targetFx: targetFx ? mapFx(targetFx) : null,
-    targetBusinessDate: nextBusinessDate(String(baseNav.business_date)),
+    targetBusinessDate: nextBusinessDate(baseNavBusinessDate),
   });
 
   await upsertPrediction(config.databaseUrl, prediction);
@@ -100,9 +102,33 @@ function nextBusinessDate(yyyyMmDd: string): string {
   return next.toISOString().slice(0, 10);
 }
 
+function normalizeDateOnly(value: unknown): string {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const text = String(value);
+  const isoDateMatch = text.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDateMatch) {
+    return isoDateMatch[1];
+  }
+
+  const compactDateMatch = text.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (compactDateMatch) {
+    return `${compactDateMatch[1]}-${compactDateMatch[2]}-${compactDateMatch[3]}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  throw new Error(`Unable to normalize date value: ${text}`);
+}
+
 function mapIndex(row: Record<string, unknown>): MarketIndexDailyRecord {
   return {
-    tradeDate: String(row.trade_date),
+    tradeDate: normalizeDateOnly(row.trade_date),
     symbol: String(row.symbol),
     closeValue: Number(row.close_value),
     currency: String(row.currency),
@@ -115,7 +141,7 @@ function mapIndex(row: Record<string, unknown>): MarketIndexDailyRecord {
 
 function mapFx(row: Record<string, unknown>): FxDailyRecord {
   return {
-    businessDate: String(row.business_date),
+    businessDate: normalizeDateOnly(row.business_date),
     currencyPair: String(row.currency_pair),
     tts: Number(row.tts),
     ttb: Number(row.ttb),
