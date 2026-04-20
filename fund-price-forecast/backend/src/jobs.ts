@@ -1,30 +1,41 @@
-import type { ScheduledHandler } from "aws-lambda";
-
-import { getConfig } from "../config.js";
-import { getSql, upsertPrediction } from "../db.js";
-import { buildPrediction } from "../domain/predict.js";
+import type { AppConfig } from "./config.js";
+import {
+  getSql,
+  upsertFundNav,
+  upsertFx,
+  upsertMarketIndex,
+  upsertPrediction,
+} from "./db.js";
+import { buildPrediction } from "./domain/predict.js";
+import { fetchEmaxisFundNav } from "./sources/emaxis.js";
+import { fetchMufgFx } from "./sources/mufg.js";
+import { fetchYahooSp500 } from "./sources/yahoo.js";
 import type {
   FundRecord,
   FxDailyRecord,
   MarketIndexDailyRecord,
-} from "../types.js";
+} from "./types.js";
 
-function mapFund(row: Record<string, unknown>): FundRecord {
-  return {
-    id: Number(row.id),
-    code: String(row.code),
-    slug: String(row.slug),
-    displayName: String(row.display_name),
-    providerName: String(row.provider_name),
-    sourceUrl: String(row.source_url),
-    benchmarkKind: String(row.benchmark_kind),
-    annualFeeRate: Number(row.annual_fee_rate),
-    currency: "JPY",
-  };
+export async function runIngestMarketData(config: AppConfig): Promise<void> {
+  const [sp500, fx] = await Promise.all([
+    fetchYahooSp500(config.sp500SourceUrl),
+    fetchMufgFx(config.mufgFxUrl),
+  ]);
+
+  await Promise.all([
+    upsertMarketIndex(config.databaseUrl, sp500),
+    upsertFx(config.databaseUrl, fx),
+  ]);
 }
 
-export const handler: ScheduledHandler = async () => {
-  const config = await getConfig();
+export async function runIngestFundNav(config: AppConfig): Promise<void> {
+  const nav = await fetchEmaxisFundNav(config.fundSourceUrl, config.fundCode);
+  await upsertFundNav(config.databaseUrl, nav);
+}
+
+export async function runRecomputePredictions(
+  config: AppConfig,
+): Promise<void> {
   const sql = getSql(config.databaseUrl);
 
   const [fund] =
@@ -94,7 +105,7 @@ export const handler: ScheduledHandler = async () => {
   });
 
   await upsertPrediction(config.databaseUrl, prediction);
-};
+}
 
 function nextBusinessDate(yyyyMmDd: string): string {
   const next = new Date(`${yyyyMmDd}T00:00:00Z`);
@@ -124,6 +135,20 @@ function normalizeDateOnly(value: unknown): string {
   }
 
   throw new Error(`Unable to normalize date value: ${text}`);
+}
+
+function mapFund(row: Record<string, unknown>): FundRecord {
+  return {
+    id: Number(row.id),
+    code: String(row.code),
+    slug: String(row.slug),
+    displayName: String(row.display_name),
+    providerName: String(row.provider_name),
+    sourceUrl: String(row.source_url),
+    benchmarkKind: String(row.benchmark_kind),
+    annualFeeRate: Number(row.annual_fee_rate),
+    currency: "JPY",
+  };
 }
 
 function mapIndex(row: Record<string, unknown>): MarketIndexDailyRecord {

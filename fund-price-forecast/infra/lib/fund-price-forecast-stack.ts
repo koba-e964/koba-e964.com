@@ -50,19 +50,9 @@ export class FundPriceForecastStack extends cdk.Stack {
       NODE_OPTIONS: "--enable-source-maps",
     };
 
-    const ingestMarketData = this.createNodeFunction(
-      "IngestMarketData",
-      "ingestMarketData.ts",
-      commonEnvironment,
-    );
-    const ingestFundNav = this.createNodeFunction(
-      "IngestFundNav",
-      "ingestFundNav.ts",
-      commonEnvironment,
-    );
-    const recomputePredictions = this.createNodeFunction(
-      "RecomputePredictions",
-      "recomputePredictions.ts",
+    const runJob = this.createNodeFunction(
+      "RunJob",
+      "runJob.ts",
       commonEnvironment,
     );
     const readPublicData = this.createNodeFunction(
@@ -71,14 +61,10 @@ export class FundPriceForecastStack extends cdk.Stack {
       commonEnvironment,
     );
 
-    databaseSecret.grantRead(ingestMarketData);
-    databaseSecret.grantRead(ingestFundNav);
-    databaseSecret.grantRead(recomputePredictions);
+    databaseSecret.grantRead(runJob);
     databaseSecret.grantRead(readPublicData);
 
-    ingestMarketData.grantInvoke(schedulerRole);
-    ingestFundNav.grantInvoke(schedulerRole);
-    recomputePredictions.grantInvoke(schedulerRole);
+    runJob.grantInvoke(schedulerRole);
 
     const httpApi = new apigwv2.HttpApi(this, "PublicApi", {
       apiName: "fund-price-forecast-public-api",
@@ -101,32 +87,37 @@ export class FundPriceForecastStack extends cdk.Stack {
     this.createSchedule(
       "FundNavMorning",
       "cron(5 1 * * ? *)",
-      ingestFundNav,
+      runJob,
       schedulerRole,
+      "ingest_fund_nav",
     );
     this.createSchedule(
       "MarketMorning",
       "cron(20 1 * * ? *)",
-      ingestMarketData,
+      runJob,
       schedulerRole,
+      "ingest_market",
     );
     this.createSchedule(
       "RecomputeMorning",
       "cron(30 1 * * ? *)",
-      recomputePredictions,
+      runJob,
       schedulerRole,
+      "recompute_predictions",
     );
     this.createSchedule(
       "MarketAfterUsClose",
       "cron(30 7 * * ? *)",
-      ingestMarketData,
+      runJob,
       schedulerRole,
+      "ingest_market",
     );
     this.createSchedule(
       "RecomputeAfterUsClose",
       "cron(40 7 * * ? *)",
-      recomputePredictions,
+      runJob,
       schedulerRole,
+      "recompute_predictions",
     );
 
     new cdk.CfnOutput(this, "PublicApiUrl", {
@@ -176,6 +167,7 @@ export class FundPriceForecastStack extends cdk.Stack {
     scheduleExpression: string,
     target: lambda.IFunction,
     role: iam.IRole,
+    job: string,
   ): scheduler.Schedule {
     return new scheduler.Schedule(this, id, {
       schedule: scheduler.ScheduleExpression.expression(
@@ -183,6 +175,7 @@ export class FundPriceForecastStack extends cdk.Stack {
         TimeZone.ASIA_TOKYO,
       ),
       target: new schedulerTargets.LambdaInvoke(target, {
+        input: scheduler.ScheduleTargetInput.fromObject({ job }),
         role,
       }),
       description: `${id} for fund price forecast`,

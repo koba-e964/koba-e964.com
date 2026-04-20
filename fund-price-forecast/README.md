@@ -73,9 +73,8 @@ python3 -m http.server 8000
 
 - [backend/src/schema.sql](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/schema.sql)
 - [backend/src/domain/predict.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/domain/predict.ts)
-- [backend/src/handlers/ingestMarketData.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/handlers/ingestMarketData.ts)
-- [backend/src/handlers/ingestFundNav.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/handlers/ingestFundNav.ts)
-- [backend/src/handlers/recomputePredictions.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/handlers/recomputePredictions.ts)
+- [backend/src/jobs.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/jobs.ts)
+- [backend/src/handlers/runJob.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/handlers/runJob.ts)
 - [backend/src/handlers/readPublicData.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/backend/src/handlers/readPublicData.ts)
 
 ### 予測モデル
