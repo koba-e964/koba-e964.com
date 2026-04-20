@@ -94,7 +94,10 @@ export interface PublicLatestPayload {
     confidenceNote: string;
   };
   latestSources: {
-    sp500: Pick<MarketIndexDailyRecord, "tradeDate" | "closeValue" | "sourceName" | "fetchedAt">;
+    sp500: Pick<
+      MarketIndexDailyRecord,
+      "tradeDate" | "closeValue" | "sourceName" | "fetchedAt"
+    >;
     ttm: Pick<FxDailyRecord, "businessDate" | "tts" | "ttb" | "ttm">;
   };
   history: Array<{

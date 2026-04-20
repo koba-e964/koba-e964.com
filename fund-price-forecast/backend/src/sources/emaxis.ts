@@ -10,10 +10,10 @@ export function parseEmaxisFundHtml(
   html: string,
   fundCode: string,
   sourceUrl: string,
-  fetchedAt: string
+  fetchedAt: string,
 ): FundNavDailyRecord {
   const dateMatch =
-    html.match(/(\d{4})[\/年](\d{1,2})[\/月](\d{1,2})日/) ||
+    html.match(/(\d{4})[/年](\d{1,2})[/月](\d{1,2})日/) ||
     html.match(/基準日[^0-9]*(\d{4})-(\d{2})-(\d{2})/);
   const navMatch =
     html.match(/基準価額[^0-9]{0,30}([0-9][0-9,]*)円/) ||
@@ -35,7 +35,10 @@ export function parseEmaxisFundHtml(
   };
 }
 
-export async function fetchEmaxisFundNav(sourceUrl: string, fundCode: string): Promise<FundNavDailyRecord> {
+export async function fetchEmaxisFundNav(
+  sourceUrl: string,
+  fundCode: string,
+): Promise<FundNavDailyRecord> {
   const response = await fetch(sourceUrl, {
     headers: {
       "user-agent": "fund-price-forecast/0.1",
@@ -46,5 +49,10 @@ export async function fetchEmaxisFundNav(sourceUrl: string, fundCode: string): P
     throw new Error(`Fund source request failed with ${response.status}`);
   }
   const html = await response.text();
-  return parseEmaxisFundHtml(html, fundCode, sourceUrl, new Date().toISOString());
+  return parseEmaxisFundHtml(
+    html,
+    fundCode,
+    sourceUrl,
+    new Date().toISOString(),
+  );
 }

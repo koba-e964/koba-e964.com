@@ -1,4 +1,7 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 
 export interface AppConfig {
   databaseUrl: string;
@@ -28,14 +31,19 @@ async function getDatabaseUrl(): Promise<string> {
   }
 
   const client = new SecretsManagerClient({});
-  const response = await client.send(new GetSecretValueCommand({ SecretId: secretId }));
+  const response = await client.send(
+    new GetSecretValueCommand({ SecretId: secretId }),
+  );
   const secretString = response.SecretString;
   if (!secretString) {
     throw new Error(`Secret ${secretId} does not contain SecretString`);
   }
 
   try {
-    const parsed = JSON.parse(secretString) as { databaseUrl?: string; DATABASE_URL?: string };
+    const parsed = JSON.parse(secretString) as {
+      databaseUrl?: string;
+      DATABASE_URL?: string;
+    };
     const databaseUrl = parsed.databaseUrl || parsed.DATABASE_URL;
     if (!databaseUrl) {
       throw new Error("databaseUrl key missing");
@@ -49,9 +57,18 @@ async function getDatabaseUrl(): Promise<string> {
 export async function getConfig(): Promise<AppConfig> {
   return {
     databaseUrl: await getDatabaseUrl(),
-    sp500SourceUrl: getRequiredEnv("SP500_SOURCE_URL", "https://finance.yahoo.co.jp/quote/%5EGSPC"),
-    mufgFxUrl: getRequiredEnv("MUFG_FX_SOURCE_URL", "https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html"),
-    fundSourceUrl: getRequiredEnv("FUND_SOURCE_URL", "https://emaxis.am.mufg.jp/fund/253266.html"),
+    sp500SourceUrl: getRequiredEnv(
+      "SP500_SOURCE_URL",
+      "https://finance.yahoo.co.jp/quote/%5EGSPC",
+    ),
+    mufgFxUrl: getRequiredEnv(
+      "MUFG_FX_SOURCE_URL",
+      "https://www.murc-kawasesouba.jp/fx/index.php",
+    ),
+    fundSourceUrl: getRequiredEnv(
+      "FUND_SOURCE_URL",
+      "https://emaxis.am.mufg.jp/fund/253266.html",
+    ),
     fundCode: getRequiredEnv("FUND_CODE", "253266"),
   };
 }

@@ -1,4 +1,8 @@
-import type { PredictionInput, PredictionResult, PredictionStatus } from "../types.js";
+import type {
+  PredictionInput,
+  PredictionResult,
+  PredictionStatus,
+} from "../types.js";
 
 const METHOD_VERSION = "v1-index-fx-fee";
 
@@ -15,7 +19,11 @@ function computeFeeFactor(annualFeeRate: number, daySpan: number): number {
   return Math.pow(1 - annualFeeRate, daySpan / 365);
 }
 
-function resolveStatus(hasIndex: boolean, hasFx: boolean, daySpan: number): PredictionStatus {
+function resolveStatus(
+  hasIndex: boolean,
+  hasFx: boolean,
+  daySpan: number,
+): PredictionStatus {
   if (daySpan > 1) {
     return "estimated_long_horizon";
   }
@@ -28,7 +36,10 @@ function resolveStatus(hasIndex: boolean, hasFx: boolean, daySpan: number): Pred
   return "estimated_missing_fx";
 }
 
-export function buildPrediction(input: PredictionInput, computedAt = new Date().toISOString()): PredictionResult {
+export function buildPrediction(
+  input: PredictionInput,
+  computedAt = new Date().toISOString(),
+): PredictionResult {
   const baseNav = input.baseNav.nav;
   const hasIndex = Boolean(input.baseIndex && input.targetIndex);
   const hasFx = Boolean(input.baseFx && input.targetFx);
@@ -40,9 +51,17 @@ export function buildPrediction(input: PredictionInput, computedAt = new Date().
     hasFx && input.baseFx && input.targetFx
       ? input.targetFx.ttm / input.baseFx.ttm
       : 1;
-  const daySpan = daysBetween(input.baseNav.businessDate, input.targetBusinessDate);
-  const feeAdjustmentFactor = computeFeeFactor(input.fund.annualFeeRate, daySpan);
-  const predictedNav = Number((baseNav * indexRatio * fxRatio * feeAdjustmentFactor).toFixed(2));
+  const daySpan = daysBetween(
+    input.baseNav.businessDate,
+    input.targetBusinessDate,
+  );
+  const feeAdjustmentFactor = computeFeeFactor(
+    input.fund.annualFeeRate,
+    daySpan,
+  );
+  const predictedNav = Number(
+    (baseNav * indexRatio * fxRatio * feeAdjustmentFactor).toFixed(2),
+  );
   const status = resolveStatus(hasIndex, hasFx, daySpan);
 
   const notes = [];

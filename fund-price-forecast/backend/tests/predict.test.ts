@@ -78,13 +78,20 @@ test("buildPrediction uses index and fx ratios for one-day forecast", () => {
 });
 
 test("buildPrediction marks missing index separately", () => {
-  const prediction = buildPrediction({ ...baseInput, baseIndex: null, targetIndex: null });
+  const prediction = buildPrediction({
+    ...baseInput,
+    baseIndex: null,
+    targetIndex: null,
+  });
   assert.equal(prediction.status, "estimated_missing_index");
   assert.equal(prediction.usedIndexValue, null);
 });
 
 test("buildPrediction applies fee factor on longer horizons", () => {
-  const prediction = buildPrediction({ ...baseInput, targetBusinessDate: "2026-05-13" });
+  const prediction = buildPrediction({
+    ...baseInput,
+    targetBusinessDate: "2026-05-13",
+  });
   assert.equal(prediction.status, "estimated_long_horizon");
   assert.ok(prediction.feeAdjustmentFactor < 1);
 });

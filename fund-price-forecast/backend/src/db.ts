@@ -12,7 +12,10 @@ export function getSql(databaseUrl: string) {
   return neon(databaseUrl);
 }
 
-export async function upsertMarketIndex(databaseUrl: string, record: MarketIndexDailyRecord): Promise<void> {
+export async function upsertMarketIndex(
+  databaseUrl: string,
+  record: MarketIndexDailyRecord,
+): Promise<void> {
   const sql = getSql(databaseUrl);
   await sql`
     insert into market_index_daily (
@@ -31,7 +34,10 @@ export async function upsertMarketIndex(databaseUrl: string, record: MarketIndex
   `;
 }
 
-export async function upsertFx(databaseUrl: string, record: FxDailyRecord): Promise<void> {
+export async function upsertFx(
+  databaseUrl: string,
+  record: FxDailyRecord,
+): Promise<void> {
   const sql = getSql(databaseUrl);
   await sql`
     insert into fx_daily (
@@ -51,7 +57,10 @@ export async function upsertFx(databaseUrl: string, record: FxDailyRecord): Prom
   `;
 }
 
-export async function upsertFundNav(databaseUrl: string, record: FundNavDailyRecord): Promise<void> {
+export async function upsertFundNav(
+  databaseUrl: string,
+  record: FundNavDailyRecord,
+): Promise<void> {
   const sql = getSql(databaseUrl);
   await sql`
     insert into fund_nav_daily (
@@ -69,7 +78,10 @@ export async function upsertFundNav(databaseUrl: string, record: FundNavDailyRec
   `;
 }
 
-export async function upsertPrediction(databaseUrl: string, record: PredictionResult): Promise<void> {
+export async function upsertPrediction(
+  databaseUrl: string,
+  record: PredictionResult,
+): Promise<void> {
   const sql = getSql(databaseUrl);
   await sql`
     insert into fund_predictions_daily (
@@ -95,7 +107,10 @@ export async function upsertPrediction(databaseUrl: string, record: PredictionRe
   `;
 }
 
-export async function getPublicLatestPayload(databaseUrl: string, fundCode: string): Promise<PublicLatestPayload | null> {
+export async function getPublicLatestPayload(
+  databaseUrl: string,
+  fundCode: string,
+): Promise<PublicLatestPayload | null> {
   const sql = getSql(databaseUrl);
   const funds = await sql`
     select code, display_name, provider_name, annual_fee_rate
@@ -151,6 +166,10 @@ export async function getPublicLatestPayload(databaseUrl: string, fundCode: stri
     limit 30
   `;
 
+  if (!latestOfficialNav || !latestPrediction || !latestSp500 || !latestFx) {
+    return null;
+  }
+
   return {
     fund: {
       code: funds[0].code,
@@ -192,7 +211,7 @@ export async function getPublicLatestPayload(databaseUrl: string, fundCode: stri
     assumptions: [
       "初版モデルは直近の公式基準価額をベースに index ratio と FX ratio を掛けて近似する。",
       "信託報酬は一日先では無視し、長期予測では年率から日割り換算する。",
-      "配当込み円換算ベースとの差は method_version を上げて改善できるようにしている。"
+      "配当込み円換算ベースとの差は method_version を上げて改善できるようにしている。",
     ],
   };
 }

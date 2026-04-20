@@ -60,6 +60,11 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 
 `eMAXIS Slim 米国株式（S&P500）` は「配当込み、円換算ベース」なので、この `v1` は近似モデルです。
 
+### データ源メモ
+
+- FX は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
+- API は `fund_nav_daily` / `fund_predictions_daily` / `market_index_daily` / `fx_daily` が揃うまで `503 data_not_ready` を返します。
+
 ## Infrastructure as Code
 
 AWS は CDK、Neon は公式 API を叩く bootstrap スクリプトで寄せています。

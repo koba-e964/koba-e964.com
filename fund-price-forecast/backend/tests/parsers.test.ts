@@ -14,7 +14,11 @@ test("parseYahooSp500Html extracts trade date and price", () => {
       </body>
     </html>
   `;
-  const record = parseYahooSp500Html(html, "https://finance.yahoo.co.jp/quote/%5EGSPC", "2026-04-13T00:00:00Z");
+  const record = parseYahooSp500Html(
+    html,
+    "https://finance.yahoo.co.jp/quote/%5EGSPC",
+    "2026-04-13T00:00:00Z",
+  );
   assert.equal(record.tradeDate, "2026-04-10");
   assert.equal(record.closeValue, 5220.44);
 });
@@ -30,7 +34,11 @@ test("parseMufgFxHtml extracts TTS TTB TTM", () => {
       </body>
     </html>
   `;
-  const record = parseMufgFxHtml(html, "https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html", "2026-04-13T00:00:00Z");
+  const record = parseMufgFxHtml(
+    html,
+    "https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html",
+    "2026-04-13T00:00:00Z",
+  );
   assert.equal(record.businessDate, "2026-04-13");
   assert.equal(record.ttm, 144.88);
 });
@@ -44,7 +52,12 @@ test("parseEmaxisFundHtml extracts date and NAV", () => {
       </body>
     </html>
   `;
-  const record = parseEmaxisFundHtml(html, "253266", "https://emaxis.am.mufg.jp/fund/253266.html", "2026-04-13T00:00:00Z");
+  const record = parseEmaxisFundHtml(
+    html,
+    "253266",
+    "https://emaxis.am.mufg.jp/fund/253266.html",
+    "2026-04-13T00:00:00Z",
+  );
   assert.equal(record.businessDate, "2026-04-13");
   assert.equal(record.nav, 35510);
 });

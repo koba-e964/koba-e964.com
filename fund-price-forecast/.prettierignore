@@ -1,0 +1,5 @@
+backend/node_modules
+backend/dist
+infra/node_modules
+infra/dist
+infra/cdk.out

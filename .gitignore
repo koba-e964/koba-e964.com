@@ -1,5 +1,6 @@
 fund-price-forecast/backend/node_modules/
 fund-price-forecast/backend/dist/
+fund-price-forecast/node_modules/
 fund-price-forecast/infra/node_modules/
 fund-price-forecast/infra/cdk.out/
 fund-price-forecast/infra/dist/

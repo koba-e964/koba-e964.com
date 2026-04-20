@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: fund-price-forecast-prettier
+        name: fund-price-forecast prettier
+        entry: bash -lc 'cd fund-price-forecast && npm run format'
+        language: system
+        files: ^fund-price-forecast/(backend|infra)/.*\.ts$
+        pass_filenames: false
+      - id: fund-price-forecast-eslint
+        name: fund-price-forecast eslint
+        entry: bash -lc 'cd fund-price-forecast && npm run lint'
+        language: system
+        files: ^fund-price-forecast/(backend|infra)/.*\.ts$
+        pass_filenames: false

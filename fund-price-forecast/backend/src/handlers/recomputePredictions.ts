@@ -3,7 +3,11 @@ import type { ScheduledHandler } from "aws-lambda";
 import { getConfig } from "../config.js";
 import { getSql, upsertPrediction } from "../db.js";
 import { buildPrediction } from "../domain/predict.js";
-import type { FundRecord, FxDailyRecord, MarketIndexDailyRecord } from "../types.js";
+import type {
+  FundRecord,
+  FxDailyRecord,
+  MarketIndexDailyRecord,
+} from "../types.js";
 
 function mapFund(row: Record<string, unknown>): FundRecord {
   return {
@@ -23,7 +27,8 @@ export const handler: ScheduledHandler = async () => {
   const config = await getConfig();
   const sql = getSql(config.databaseUrl);
 
-  const [fund] = await sql`select * from funds where code = ${config.fundCode} limit 1`;
+  const [fund] =
+    await sql`select * from funds where code = ${config.fundCode} limit 1`;
   const [baseNav] = await sql`
     select * from fund_nav_daily
     where fund_code = ${config.fundCode}
@@ -58,7 +63,14 @@ export const handler: ScheduledHandler = async () => {
   `;
 
   if (!fund || !baseNav) {
-    throw new Error("Cannot compute prediction without fund row and official NAV");
+    throw new Error(
+      "Cannot compute prediction without fund row and official NAV",
+    );
+  }
+  if (!baseIndex && !baseFx) {
+    throw new Error(
+      "Cannot compute prediction without any upstream market data",
+    );
   }
 
   const prediction = buildPrediction({

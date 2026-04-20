@@ -1,10 +1,13 @@
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+} from "aws-lambda";
 
 import { getConfig } from "../config.js";
 import { getPublicLatestPayload } from "../db.js";
 
 export async function handler(
-  event: APIGatewayProxyEventV2
+  event: APIGatewayProxyEventV2,
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = await getConfig();
   const fundCode = event.pathParameters?.code || config.fundCode;
@@ -12,9 +15,9 @@ export async function handler(
 
   if (!payload) {
     return {
-      statusCode: 404,
+      statusCode: 503,
       headers: { "content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify({ error: "fund_not_found", fundCode }),
+      body: JSON.stringify({ error: "data_not_ready", fundCode }),
     };
   }
 

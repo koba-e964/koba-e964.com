@@ -10,11 +10,21 @@ function midpoint(tts: number, ttb: number): number {
   return Number(((tts + ttb) / 2).toFixed(6));
 }
 
-export function parseMufgFxHtml(html: string, sourceUrl: string, fetchedAt: string): FxDailyRecord {
+export function parseMufgFxHtml(
+  html: string,
+  sourceUrl: string,
+  fetchedAt: string,
+): FxDailyRecord {
   const dateMatch =
-    html.match(/(\d{4})[\/年](\d{1,2})[\/月](\d{1,2})日/) ||
+    html.match(/(\d{4})[/年](\d{1,2})[/月](\d{1,2})日/) ||
     html.match(/(\d{4})-(\d{2})-(\d{2})/);
-  const usdRowMatch = html.match(/米ドル[\s\S]{0,300}?([0-9]+\.[0-9]+)[\s\S]{0,120}?([0-9]+\.[0-9]+)/);
+  const usdRowMatch =
+    html.match(
+      /(?:US Dollar|米ドル)[\s\S]{0,300}?(?:USD)?[\s\S]{0,80}?([0-9]+\.[0-9]+)[\s\S]{0,80}?([0-9]+\.[0-9]+)/,
+    ) ||
+    html.match(
+      /USD[\s\S]{0,120}?([0-9]+\.[0-9]+)[\s\S]{0,80}?([0-9]+\.[0-9]+)/,
+    );
 
   if (!dateMatch || !usdRowMatch) {
     throw new Error("Unable to parse MUFG FX HTML");

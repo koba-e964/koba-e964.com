@@ -25,10 +25,18 @@ export interface FundPriceForecastStackProps extends cdk.StackProps {
 }
 
 export class FundPriceForecastStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: FundPriceForecastStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: FundPriceForecastStackProps,
+  ) {
     super(scope, id, props);
 
-    const databaseSecret = secretsmanager.Secret.fromSecretNameV2(this, "DatabaseSecret", props.secretId);
+    const databaseSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "DatabaseSecret",
+      props.secretId,
+    );
     const schedulerRole = new iam.Role(this, "SchedulerInvokeRole", {
       assumedBy: new iam.ServicePrincipal("scheduler.amazonaws.com"),
     });
@@ -42,14 +50,26 @@ export class FundPriceForecastStack extends cdk.Stack {
       NODE_OPTIONS: "--enable-source-maps",
     };
 
-    const ingestMarketData = this.createNodeFunction("IngestMarketData", "ingestMarketData.ts", commonEnvironment);
-    const ingestFundNav = this.createNodeFunction("IngestFundNav", "ingestFundNav.ts", commonEnvironment);
+    const ingestMarketData = this.createNodeFunction(
+      "IngestMarketData",
+      "ingestMarketData.ts",
+      commonEnvironment,
+    );
+    const ingestFundNav = this.createNodeFunction(
+      "IngestFundNav",
+      "ingestFundNav.ts",
+      commonEnvironment,
+    );
     const recomputePredictions = this.createNodeFunction(
       "RecomputePredictions",
       "recomputePredictions.ts",
-      commonEnvironment
+      commonEnvironment,
     );
-    const readPublicData = this.createNodeFunction("ReadPublicData", "readPublicData.ts", commonEnvironment);
+    const readPublicData = this.createNodeFunction(
+      "ReadPublicData",
+      "readPublicData.ts",
+      commonEnvironment,
+    );
 
     databaseSecret.grantRead(ingestMarketData);
     databaseSecret.grantRead(ingestFundNav);
@@ -72,14 +92,42 @@ export class FundPriceForecastStack extends cdk.Stack {
     httpApi.addRoutes({
       path: "/api/funds/{code}/latest",
       methods: [apigwv2.HttpMethod.GET],
-      integration: new HttpLambdaIntegration("ReadLatestIntegration", readPublicData),
+      integration: new HttpLambdaIntegration(
+        "ReadLatestIntegration",
+        readPublicData,
+      ),
     });
 
-    this.createSchedule("FundNavMorning", "cron(5 1 * * ? *)", ingestFundNav, schedulerRole);
-    this.createSchedule("MarketMorning", "cron(20 1 * * ? *)", ingestMarketData, schedulerRole);
-    this.createSchedule("RecomputeMorning", "cron(30 1 * * ? *)", recomputePredictions, schedulerRole);
-    this.createSchedule("MarketAfterUsClose", "cron(30 7 * * ? *)", ingestMarketData, schedulerRole);
-    this.createSchedule("RecomputeAfterUsClose", "cron(40 7 * * ? *)", recomputePredictions, schedulerRole);
+    this.createSchedule(
+      "FundNavMorning",
+      "cron(5 1 * * ? *)",
+      ingestFundNav,
+      schedulerRole,
+    );
+    this.createSchedule(
+      "MarketMorning",
+      "cron(20 1 * * ? *)",
+      ingestMarketData,
+      schedulerRole,
+    );
+    this.createSchedule(
+      "RecomputeMorning",
+      "cron(30 1 * * ? *)",
+      recomputePredictions,
+      schedulerRole,
+    );
+    this.createSchedule(
+      "MarketAfterUsClose",
+      "cron(30 7 * * ? *)",
+      ingestMarketData,
+      schedulerRole,
+    );
+    this.createSchedule(
+      "RecomputeAfterUsClose",
+      "cron(40 7 * * ? *)",
+      recomputePredictions,
+      schedulerRole,
+    );
 
     new cdk.CfnOutput(this, "PublicApiUrl", {
       value: httpApi.url ?? "",
@@ -89,7 +137,11 @@ export class FundPriceForecastStack extends cdk.Stack {
     });
   }
 
-  private createNodeFunction(name: string, entryFile: string, environment: Record<string, string>): NodejsFunction {
+  private createNodeFunction(
+    name: string,
+    entryFile: string,
+    environment: Record<string, string>,
+  ): NodejsFunction {
     const logGroup = new logs.LogGroup(this, `${name}LogGroup`, {
       retention: logs.RetentionDays.ONE_MONTH,
     });
@@ -113,7 +165,7 @@ export class FundPriceForecastStack extends cdk.Stack {
       new iam.PolicyStatement({
         actions: ["secretsmanager:GetSecretValue"],
         resources: ["*"],
-      })
+      }),
     );
 
     return fn;
@@ -123,10 +175,13 @@ export class FundPriceForecastStack extends cdk.Stack {
     id: string,
     scheduleExpression: string,
     target: lambda.IFunction,
-    role: iam.IRole
+    role: iam.IRole,
   ): scheduler.Schedule {
     return new scheduler.Schedule(this, id, {
-      schedule: scheduler.ScheduleExpression.expression(scheduleExpression, TimeZone.ASIA_TOKYO),
+      schedule: scheduler.ScheduleExpression.expression(
+        scheduleExpression,
+        TimeZone.ASIA_TOKYO,
+      ),
       target: new schedulerTargets.LambdaInvoke(target, {
         role,
       }),

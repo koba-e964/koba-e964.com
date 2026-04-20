@@ -10,10 +10,17 @@ new FundPriceForecastStack(app, "FundPriceForecastStack", {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
   },
-  secretId: app.node.tryGetContext("databaseSecretId") ?? "fund-price-forecast/prod/database-url",
+  secretId:
+    app.node.tryGetContext("databaseSecretId") ??
+    "fund-price-forecast/prod/database-url",
   fundCode: app.node.tryGetContext("fundCode") ?? "253266",
-  fundSourceUrl: app.node.tryGetContext("fundSourceUrl") ?? "https://emaxis.am.mufg.jp/fund/253266.html",
-  sp500SourceUrl: app.node.tryGetContext("sp500SourceUrl") ?? "https://finance.yahoo.co.jp/quote/%5EGSPC",
+  fundSourceUrl:
+    app.node.tryGetContext("fundSourceUrl") ??
+    "https://emaxis.am.mufg.jp/fund/253266.html",
+  sp500SourceUrl:
+    app.node.tryGetContext("sp500SourceUrl") ??
+    "https://finance.yahoo.co.jp/quote/%5EGSPC",
   mufgFxSourceUrl:
-    app.node.tryGetContext("mufgFxSourceUrl") ?? "https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html",
+    app.node.tryGetContext("mufgFxSourceUrl") ??
+    "https://www.murc-kawasesouba.jp/fx/index.php",
 });
