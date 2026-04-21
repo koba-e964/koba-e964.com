@@ -1,6 +1,15 @@
 const DEFAULT_API_BASE_URL = "https://example.execute-api.ap-northeast-1.amazonaws.com/prod";
 const DEFAULT_FUND_CODE = "253266";
-const FALLBACK_PATH = "./mock/latest.json";
+const DEFAULT_FALLBACK_PATH = "./mock/latest.json";
+
+function getPageConfig() {
+  const root = document.documentElement.dataset;
+  return {
+    fundCode: root.fundCode || DEFAULT_FUND_CODE,
+    fallbackPath: root.fallbackPath || DEFAULT_FALLBACK_PATH,
+    officialSourceUrl: root.officialSourceUrl || "",
+  };
+}
 
 class DataNotReadyError extends Error {
   constructor(fundCode) {
@@ -11,8 +20,7 @@ class DataNotReadyError extends Error {
 }
 
 async function loadData() {
-  const params = new URLSearchParams(window.location.search);
-  const fundCode = params.get("fund") || DEFAULT_FUND_CODE;
+  const { fundCode, fallbackPath } = getPageConfig();
   const apiBaseUrl = window.APP_CONFIG?.apiBaseUrl || DEFAULT_API_BASE_URL;
   const apiUrl = `${apiBaseUrl}/api/funds/${encodeURIComponent(fundCode)}/latest`;
 
@@ -39,7 +47,7 @@ async function loadData() {
       throw error;
     }
 
-    const fallbackResponse = await fetch(FALLBACK_PATH);
+    const fallbackResponse = await fetch(fallbackPath);
     if (!fallbackResponse.ok) {
       throw error;
     }
@@ -81,6 +89,7 @@ function formatDateTime(value) {
 }
 
 function renderApp(payload, sourceLabel) {
+  const { officialSourceUrl } = getPageConfig();
   const app = document.querySelector("#app");
   const template = document.querySelector("#app-template");
   const fragment = template.content.cloneNode(true);
@@ -100,6 +109,7 @@ function renderApp(payload, sourceLabel) {
     "fund-meta",
     `${fund.providerName} / fund code ${fund.code} / source: ${sourceLabel}`
   );
+  setLink(fragment, "official-source-link", officialSourceUrl);
   setField(fragment, "prediction-status", statusMap[latestPrediction.status] || latestPrediction.status);
   setField(fragment, "official-nav", formatCurrency(latestOfficialNav.nav, "JPY"));
   setField(
@@ -153,6 +163,13 @@ function setField(root, field, value) {
   const node = root.querySelector(`[data-field="${field}"]`);
   if (node) {
     node.textContent = value;
+  }
+}
+
+function setLink(root, field, href) {
+  const node = root.querySelector(`[data-field="${field}"]`);
+  if (node && href) {
+    node.href = href;
   }
 }
 
