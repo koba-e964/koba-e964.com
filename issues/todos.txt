@@ -1,0 +1,4 @@
+display timezone, use one timezone for everything
+"Trust Fee" は何の Trust Fee?
+"FX" は日本語だと別の意味があるので、日本語部分は「為替」などにする
+AWS の定期実行は 1 時間ごととか 30min ごとでよい。なるべく早く更新を知りたい。
