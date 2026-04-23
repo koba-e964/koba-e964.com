@@ -1,6 +1,8 @@
 const DEFAULT_API_BASE_URL = "https://example.execute-api.ap-northeast-1.amazonaws.com/prod";
 const DEFAULT_FUND_CODE = "253266";
 const DEFAULT_FALLBACK_PATH = "./mock/latest.json";
+const DISPLAY_TIME_ZONE = "Asia/Tokyo";
+const DISPLAY_TIME_ZONE_LABEL = "JST";
 
 function getPageConfig() {
   const root = document.documentElement.dataset;
@@ -84,7 +86,8 @@ function formatDateTime(value) {
   return new Intl.DateTimeFormat("ja-JP", {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "Asia/Tokyo",
+    timeZone: DISPLAY_TIME_ZONE,
+    timeZoneName: "short",
   }).format(new Date(value));
 }
 
@@ -109,6 +112,7 @@ function renderApp(payload, sourceLabel) {
     "fund-meta",
     `${fund.providerName} / fund code ${fund.code} / source: ${sourceLabel}`
   );
+  setField(fragment, "timezone-meta", `表示タイムゾーン: ${DISPLAY_TIME_ZONE_LABEL} (${DISPLAY_TIME_ZONE})`);
   setLink(fragment, "official-source-link", officialSourceUrl);
   setField(fragment, "prediction-status", statusMap[latestPrediction.status] || latestPrediction.status);
   setField(fragment, "official-nav", formatCurrency(latestOfficialNav.nav, "JPY"));
