@@ -103,7 +103,7 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 
 ### データ源メモ
 
-- FX は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
+- 為替は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
 - 公式基準価額は HTML ではなく、MUFG AM の JSON endpoint `https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266` をデフォルト取得先にしています。
 - API は `fund_nav_daily` / `fund_predictions_daily` / `market_index_daily` / `fx_daily` が揃うまで `503 data_not_ready` を返します。
 - フロントは `503 data_not_ready` を受けたとき、mock fallback ではなく「まだ ingest されていない」専用エラーを表示します。
