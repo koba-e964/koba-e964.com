@@ -83,12 +83,12 @@ function formatDateTime(value) {
   if (!value) {
     return "時刻未取得";
   }
-  return new Intl.DateTimeFormat("ja-JP", {
+  const formatted = new Intl.DateTimeFormat("ja-JP", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: DISPLAY_TIME_ZONE,
-    timeZoneName: "short",
   }).format(new Date(value));
+  return `${formatted} ${DISPLAY_TIME_ZONE_LABEL}`;
 }
 
 function renderApp(payload, sourceLabel) {
