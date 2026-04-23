@@ -85,36 +85,22 @@ export class FundPriceForecastStack extends cdk.Stack {
     });
 
     this.createSchedule(
-      "FundNavMorning",
-      "cron(5 1 * * ? *)",
+      "FundNavHalfHourly",
+      "cron(0/30 * * * ? *)",
       runJob,
       schedulerRole,
       "ingest_fund_nav",
     );
     this.createSchedule(
-      "MarketMorning",
-      "cron(20 1 * * ? *)",
+      "MarketHalfHourly",
+      "cron(5/30 * * * ? *)",
       runJob,
       schedulerRole,
       "ingest_market",
     );
     this.createSchedule(
-      "RecomputeMorning",
-      "cron(30 1 * * ? *)",
-      runJob,
-      schedulerRole,
-      "recompute_predictions",
-    );
-    this.createSchedule(
-      "MarketAfterUsClose",
-      "cron(30 7 * * ? *)",
-      runJob,
-      schedulerRole,
-      "ingest_market",
-    );
-    this.createSchedule(
-      "RecomputeAfterUsClose",
-      "cron(40 7 * * ? *)",
+      "RecomputeHalfHourly",
+      "cron(10/30 * * * ? *)",
       runJob,
       schedulerRole,
       "recompute_predictions",

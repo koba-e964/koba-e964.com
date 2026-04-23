@@ -112,6 +112,8 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 
 AWS は CDK、Neon は公式 API を叩く bootstrap スクリプトで寄せています。
 
+定期実行は JST で 30 分ごとに回し、`fund NAV -> market -> recompute` を 5 分刻みでずらしています。
+
 ### 主要ファイル
 
 - [infra/lib/fund-price-forecast-stack.ts](/Users/kobas-mac/srcview/koba-e964.com/fund-price-forecast/infra/lib/fund-price-forecast-stack.ts)
