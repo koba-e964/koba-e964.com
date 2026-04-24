@@ -223,7 +223,7 @@ export async function getPublicLatestPayload(
       note: row.note,
     })),
     assumptions: [
-      "初版モデルは直近の公式基準価額をベースに index ratio と FX ratio を掛けて近似する。",
+      "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",
       "信託報酬は一日先では無視し、長期予測では年率から日割り換算する。",
       "配当込み円換算ベースとの差は method_version を上げて改善できるようにしている。",
     ],
