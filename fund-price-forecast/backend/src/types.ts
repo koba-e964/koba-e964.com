@@ -102,8 +102,9 @@ export interface PublicLatestPayload {
   };
   history: Array<{
     businessDate: string;
-    kind: PredictionStatus | "official";
-    value: number;
+    kind: PredictionStatus | "official" | "market_index" | "fx_ttm";
+    value: number | null;
+    valueCurrency?: "JPY" | "USD" | "FX";
     note: string;
   }>;
   assumptions: string[];

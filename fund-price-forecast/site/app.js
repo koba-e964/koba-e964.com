@@ -69,6 +69,22 @@ function formatCurrency(value, currency) {
   }).format(value);
 }
 
+function formatHistoryValue(value, valueCurrency) {
+  if (typeof value !== "number") {
+    return "未取得";
+  }
+
+  switch (valueCurrency) {
+    case "USD":
+      return formatCurrency(value, "USD");
+    case "FX":
+      return formatNumber(value, 3);
+    case "JPY":
+    default:
+      return formatCurrency(value, "JPY");
+  }
+}
+
 function formatNumber(value, digits = 2) {
   if (typeof value !== "number") {
     return "未取得";
@@ -100,10 +116,12 @@ function renderApp(payload, sourceLabel) {
   const { fund, latestOfficialNav, latestPrediction, latestSources, history, assumptions } = payload;
   const statusMap = {
     official: "公式値",
-    estimated_complete_inputs: "両入力確定",
-    estimated_missing_index: "S&P 500 待ち",
-    estimated_missing_fx: "TTM 待ち",
+    estimated_complete_inputs: "推定値",
+    estimated_missing_index: "推定値",
+    estimated_missing_fx: "推定値",
     estimated_long_horizon: "長期推定",
+    market_index: "S&P 500",
+    fx_ttm: "為替TTM",
   };
 
   setField(fragment, "fund-name", fund.displayName);
@@ -146,8 +164,8 @@ function renderApp(payload, sourceLabel) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.businessDate}</td>
-      <td>${row.kind}</td>
-      <td>${formatCurrency(row.value, "JPY")}</td>
+      <td>${statusMap[row.kind] || row.kind}</td>
+      <td>${formatHistoryValue(row.value, row.valueCurrency)}</td>
       <td>${row.note}</td>
     `;
     historyBody.appendChild(tr);

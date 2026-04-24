@@ -152,15 +152,23 @@ export async function getPublicLatestPayload(
   `;
   const historyRows = await sql`
     with combined as (
-      select business_date, 'official'::text as kind, nav::double precision as value, '公式基準価額'::text as note
+      select business_date, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note
       from fund_nav_daily
       where fund_code = ${fundCode}
       union all
-      select business_date, status::text as kind, predicted_nav::double precision as value, confidence_note::text as note
+      select business_date, status::text as kind, predicted_nav::double precision as value, 'JPY'::text as value_currency, confidence_note::text as note
       from fund_predictions_daily
       where fund_code = ${fundCode}
+      union all
+      select trade_date as business_date, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note
+      from market_index_daily
+      where symbol = '^GSPC'
+      union all
+      select business_date, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note
+      from fx_daily
+      where currency_pair = 'USD/JPY'
     )
-    select business_date, kind, value, note
+    select business_date, kind, value, value_currency, note
     from combined
     order by business_date desc
     limit 30
@@ -205,7 +213,13 @@ export async function getPublicLatestPayload(
     history: historyRows.map((row) => ({
       businessDate: row.business_date,
       kind: row.kind,
-      value: Number(row.value),
+      value: row.value === null ? null : Number(row.value),
+      valueCurrency:
+        row.value_currency === "JPY" ||
+        row.value_currency === "USD" ||
+        row.value_currency === "FX"
+          ? row.value_currency
+          : undefined,
       note: row.note,
     })),
     assumptions: [
