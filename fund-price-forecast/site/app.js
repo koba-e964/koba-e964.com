@@ -107,6 +107,16 @@ function formatDateTime(value) {
   return `${formatted} ${DISPLAY_TIME_ZONE_LABEL}`;
 }
 
+function formatDateOnly(value) {
+  if (!value) {
+    return "日付未取得";
+  }
+  return new Intl.DateTimeFormat("ja-JP", {
+    dateStyle: "medium",
+    timeZone: DISPLAY_TIME_ZONE,
+  }).format(new Date(value));
+}
+
 function renderApp(payload, sourceLabel) {
   const { officialSourceUrl } = getPageConfig();
   const app = document.querySelector("#app");
@@ -137,25 +147,25 @@ function renderApp(payload, sourceLabel) {
   setField(
     fragment,
     "official-date",
-    `${latestOfficialNav.businessDate} 公表 / 取得 ${formatDateTime(latestOfficialNav.fetchedAt)}`
+    `${formatDateOnly(latestOfficialNav.businessDate)} 公表 / 取得 ${formatDateTime(latestOfficialNav.fetchedAt)}`
   );
   setField(fragment, "predicted-nav", formatCurrency(latestPrediction.predictedNav, "JPY"));
   setField(
     fragment,
     "prediction-note",
-    `${latestPrediction.businessDate} 向け / ${latestPrediction.confidenceNote}`
+    `${formatDateOnly(latestPrediction.businessDate)} 向け / ${latestPrediction.confidenceNote}`
   );
   setField(fragment, "sp500-value", formatNumber(latestSources.sp500.closeValue, 2));
   setField(
     fragment,
     "sp500-meta",
-    `${latestSources.sp500.tradeDate} / ${latestSources.sp500.sourceName} / 取得 ${formatDateTime(latestSources.sp500.fetchedAt)}`
+    `${formatDateOnly(latestSources.sp500.tradeDate)} / ${latestSources.sp500.sourceName} / 取得 ${formatDateTime(latestSources.sp500.fetchedAt)}`
   );
   setField(fragment, "ttm-value", formatNumber(latestSources.ttm.ttm, 3));
   setField(
     fragment,
     "ttm-meta",
-    `${latestSources.ttm.businessDate} / TTS ${formatNumber(latestSources.ttm.tts, 3)} / TTB ${formatNumber(latestSources.ttm.ttb, 3)}`
+    `${formatDateOnly(latestSources.ttm.businessDate)} / TTS ${formatNumber(latestSources.ttm.tts, 3)} / TTB ${formatNumber(latestSources.ttm.ttb, 3)}`
   );
   setField(fragment, "fee-value", `${(fund.annualFeeRate * 100).toFixed(3)}%`);
 
