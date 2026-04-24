@@ -79,7 +79,7 @@ insert into funds (
   '三菱UFJアセットマネジメント',
   'https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266',
   'S&P500 total return JPY proxy',
-  0.00093
+  0.000814
 )
 on conflict (code) do update set
   display_name = excluded.display_name,

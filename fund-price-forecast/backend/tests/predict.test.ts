@@ -13,7 +13,7 @@ const baseInput: PredictionInput = {
     providerName: "三菱UFJアセットマネジメント",
     sourceUrl: "https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266",
     benchmarkKind: "S&P500 total return JPY proxy",
-    annualFeeRate: 0.00093,
+    annualFeeRate: 0.000814,
     currency: "JPY",
   },
   baseNav: {
