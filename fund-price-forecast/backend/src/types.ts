@@ -101,7 +101,7 @@ export interface PublicLatestPayload {
     ttm: Pick<FxDailyRecord, "businessDate" | "tts" | "ttb" | "ttm">;
   };
   history: Array<{
-    businessDate: string;
+    eventAt: string;
     kind: PredictionStatus | "official" | "market_index" | "fx_ttm";
     value: number | null;
     valueCurrency?: "JPY" | "USD" | "FX";

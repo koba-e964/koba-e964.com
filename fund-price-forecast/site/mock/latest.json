@@ -32,42 +32,42 @@
   },
   "history": [
     {
-      "businessDate": "2026-04-11",
+      "eventAt": "2026-04-11T15:00:00+09:00",
       "kind": "official",
       "value": 35280,
       "valueCurrency": "JPY",
       "note": "公式基準価額"
     },
     {
-      "businessDate": "2026-04-12",
+      "eventAt": "2026-04-12T15:00:00+09:00",
       "kind": "official",
       "value": 35410,
       "valueCurrency": "JPY",
       "note": "公式基準価額"
     },
     {
-      "businessDate": "2026-04-13",
+      "eventAt": "2026-04-13T15:00:00+09:00",
       "kind": "official",
       "value": 35510,
       "valueCurrency": "JPY",
       "note": "公式基準価額"
     },
     {
-      "businessDate": "2026-04-14",
+      "eventAt": "2026-04-14T07:30:00+09:00",
       "kind": "estimated_complete_inputs",
       "value": 35620,
       "valueCurrency": "JPY",
       "note": "v1 モデルによる推定値"
     },
     {
-      "businessDate": "2026-04-13",
+      "eventAt": "2026-04-13T07:05:00+09:00",
       "kind": "market_index",
       "value": 5220.44,
       "valueCurrency": "USD",
       "note": "S&P 500 終値"
     },
     {
-      "businessDate": "2026-04-13",
+      "eventAt": "2026-04-13T10:00:00+09:00",
       "kind": "fx_ttm",
       "value": 144.88,
       "valueCurrency": "FX",

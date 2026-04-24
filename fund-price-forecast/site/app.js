@@ -163,7 +163,7 @@ function renderApp(payload, sourceLabel) {
   history.forEach((row) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${row.businessDate}</td>
+      <td>${formatDateTime(row.eventAt)}</td>
       <td>${statusMap[row.kind] || row.kind}</td>
       <td>${formatHistoryValue(row.value, row.valueCurrency)}</td>
       <td>${row.note}</td>
