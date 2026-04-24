@@ -152,23 +152,28 @@ export async function getPublicLatestPayload(
   `;
   const historyRows = await sql`
     with combined as (
-      select fetched_at as event_at, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note
+      select fetched_at as event_at, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note,
+        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
       from fund_nav_daily
       where fund_code = ${fundCode}
       union all
-      select computed_at as event_at, status::text as kind, predicted_nav::double precision as value, 'JPY'::text as value_currency, confidence_note::text as note
+      select computed_at as event_at, status::text as kind, predicted_nav::double precision as value, 'JPY'::text as value_currency, confidence_note::text as note,
+        predicted_from_trade_date as index_date, used_index_value::double precision as index_value,
+        predicted_from_fx_date as fx_date, used_ttm::double precision as fx_value
       from fund_predictions_daily
       where fund_code = ${fundCode}
       union all
-      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note
+      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
+        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
       from market_index_daily
       where symbol = '^GSPC'
       union all
-      select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note
+      select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note,
+        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
       from fx_daily
       where currency_pair = 'USD/JPY'
     )
-    select event_at, kind, value, value_currency, note
+    select event_at, kind, value, value_currency, note, index_date, index_value, fx_date, fx_value
     from combined
     order by event_at desc
     limit 30
@@ -221,6 +226,16 @@ export async function getPublicLatestPayload(
           ? row.value_currency
           : undefined,
       note: row.note,
+      indexDate: row.index_date,
+      indexValue:
+        row.index_value === null || row.index_value === undefined
+          ? null
+          : Number(row.index_value),
+      fxDate: row.fx_date,
+      fxValue:
+        row.fx_value === null || row.fx_value === undefined
+          ? null
+          : Number(row.fx_value),
     })),
     assumptions: [
       "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",

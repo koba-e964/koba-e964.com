@@ -57,7 +57,11 @@
       "kind": "estimated_complete_inputs",
       "value": 35620,
       "valueCurrency": "JPY",
-      "note": "v1 モデルによる推定値"
+      "note": "v1 モデルによる推定値",
+      "indexDate": "2026-04-10",
+      "indexValue": 5220.44,
+      "fxDate": "2026-04-13",
+      "fxValue": 144.88
     },
     {
       "eventAt": "2026-04-13T07:05:00+09:00",

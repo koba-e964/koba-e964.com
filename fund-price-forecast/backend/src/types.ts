@@ -106,6 +106,10 @@ export interface PublicLatestPayload {
     value: number | null;
     valueCurrency?: "JPY" | "USD" | "FX";
     note: string;
+    indexDate?: string | null;
+    indexValue?: number | null;
+    fxDate?: string | null;
+    fxValue?: number | null;
   }>;
   assumptions: string[];
 }

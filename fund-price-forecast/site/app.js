@@ -117,6 +117,37 @@ function formatDateOnly(value) {
   }).format(new Date(value));
 }
 
+function formatHistoryNote(row) {
+  if (
+    row.kind === "estimated_complete_inputs" ||
+    row.kind === "estimated_missing_index" ||
+    row.kind === "estimated_missing_fx" ||
+    row.kind === "estimated_long_horizon"
+  ) {
+    const noteParts = [];
+    if (typeof row.indexValue === "number" && row.indexDate) {
+      noteParts.push(
+        `S&P 500 反映済み (${formatNumber(row.indexValue, 2)}, ${formatDateOnly(row.indexDate)})`
+      );
+    } else {
+      noteParts.push("S&P 500 は未反映");
+    }
+    if (typeof row.fxValue === "number" && row.fxDate) {
+      noteParts.push(
+        `TTM 反映済み (${formatNumber(row.fxValue, 3)}, ${formatDateOnly(row.fxDate)})`
+      );
+    } else {
+      noteParts.push("TTM は未反映");
+    }
+    if (row.kind === "estimated_long_horizon") {
+      noteParts.push("長期補正あり");
+    }
+    return noteParts.join(" / ");
+  }
+
+  return row.note;
+}
+
 function renderApp(payload, sourceLabel) {
   const { officialSourceUrl } = getPageConfig();
   const app = document.querySelector("#app");
@@ -176,7 +207,7 @@ function renderApp(payload, sourceLabel) {
       <td>${formatDateTime(row.eventAt)}</td>
       <td>${statusMap[row.kind] || row.kind}</td>
       <td>${formatHistoryValue(row.value, row.valueCurrency)}</td>
-      <td>${row.note}</td>
+      <td>${formatHistoryNote(row)}</td>
     `;
     historyBody.appendChild(tr);
   });
