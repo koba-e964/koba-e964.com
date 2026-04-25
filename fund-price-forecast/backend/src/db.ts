@@ -58,6 +58,34 @@ function isSamePrediction(
   );
 }
 
+export function isSamePredictionContent(
+  left: Record<string, unknown> | undefined,
+  right: PredictionResult,
+): boolean {
+  if (!left) {
+    return false;
+  }
+
+  return (
+    String(left.status) === right.status &&
+    Number(left.predicted_nav) === right.predictedNav &&
+    (left.predicted_from_trade_date == null
+      ? null
+      : String(left.predicted_from_trade_date).slice(0, 10)) ===
+      right.predictedFromTradeDate &&
+    (left.predicted_from_fx_date == null
+      ? null
+      : String(left.predicted_from_fx_date).slice(0, 10)) ===
+      right.predictedFromFxDate &&
+    toNullableNumber(left.used_index_value as number | string | null) ===
+      right.usedIndexValue &&
+    toNullableNumber(left.used_ttm as number | string | null) ===
+      right.usedTtm &&
+    Number(left.fee_adjustment_factor) === right.feeAdjustmentFactor &&
+    String(left.confidence_note) === right.confidenceNote
+  );
+}
+
 export function dedupePredictionHistory(
   rows: RawHistoryRow[],
 ): RawHistoryRow[] {
@@ -177,6 +205,24 @@ export async function upsertPrediction(
   record: PredictionResult,
 ): Promise<void> {
   const sql = getSql(databaseUrl);
+  const [latestPrediction] = await sql`
+    select *
+    from fund_predictions_daily
+    where fund_code = ${record.fundCode}
+      and method_version = ${record.methodVersion}
+    order by business_date desc, computed_at desc
+    limit 1
+  `;
+
+  if (
+    latestPrediction &&
+    String(latestPrediction.business_date).slice(0, 10) !==
+      record.businessDate &&
+    isSamePredictionContent(latestPrediction, record)
+  ) {
+    return;
+  }
+
   await sql`
     insert into fund_predictions_daily (
       fund_code, business_date, status, predicted_nav, predicted_from_trade_date,
