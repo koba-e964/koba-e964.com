@@ -9,6 +9,7 @@ test("parseYahooSp500Html extracts trade date and price", () => {
   const html = `
     <html>
       <body>
+        <div>前日終値 5,180.11</div>
         <div class="_CommonPriceBoard__price_1g7gt_64">
           <span class="_StyledNumber__value_1arhg_9">5,220.44</span>
         </div>
@@ -22,6 +23,26 @@ test("parseYahooSp500Html extracts trade date and price", () => {
   );
   assert.equal(record.tradeDate, "2026-04-13");
   assert.equal(record.closeValue, 5220.44);
+});
+
+test("parseYahooSp500Html uses previous close during market hours", () => {
+  const html = `
+    <html>
+      <body>
+        <div>前日終値 5,180.11</div>
+        <div class="_CommonPriceBoard__price_1g7gt_64">
+          <span class="_StyledNumber__value_1arhg_9">5,220.44</span>
+        </div>
+      </body>
+    </html>
+  `;
+  const record = parseYahooSp500Html(
+    html,
+    "https://finance.yahoo.co.jp/quote/%5EGSPC",
+    "2026-04-13T14:00:00Z",
+  );
+  assert.equal(record.tradeDate, "2026-04-10");
+  assert.equal(record.closeValue, 5180.11);
 });
 
 test("parseMufgFxHtml extracts TTS TTB TTM", () => {
