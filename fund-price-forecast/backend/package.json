@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
+    "recompute:all": "node --import tsx ./scripts/recompute-all.ts",
     "source:check": "node --import tsx ./scripts/source-check.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },

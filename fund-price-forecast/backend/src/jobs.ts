@@ -14,6 +14,7 @@ import type {
   FundRecord,
   FxDailyRecord,
   MarketIndexDailyRecord,
+  PredictionResult,
 } from "./types.js";
 
 export async function runIngestMarketData(config: AppConfig): Promise<void> {
@@ -37,74 +38,37 @@ export async function runRecomputePredictions(
   config: AppConfig,
 ): Promise<void> {
   const sql = getSql(config.databaseUrl);
-
-  const [fund] =
-    await sql`select * from funds where code = ${config.fundCode} limit 1`;
   const [baseNav] = await sql`
     select * from fund_nav_daily
     where fund_code = ${config.fundCode}
     order by business_date desc
     limit 1
   `;
-  const [baseIndex] = await sql`
-    select * from market_index_daily
-    where symbol = '^GSPC'
-      and trade_date <= ${baseNav.business_date}
-    order by trade_date desc
-    limit 1
-  `;
-  const [targetIndex] = await sql`
-    select * from market_index_daily
-    where symbol = '^GSPC'
-    order by trade_date desc
-    limit 1
-  `;
-  const [baseFx] = await sql`
-    select * from fx_daily
-    where currency_pair = 'USD/JPY'
-      and business_date <= ${baseNav.business_date}
-    order by business_date desc
-    limit 1
-  `;
-  const [targetFx] = await sql`
-    select * from fx_daily
-    where currency_pair = 'USD/JPY'
-    order by business_date desc
-    limit 1
-  `;
-
-  if (!fund || !baseNav) {
-    throw new Error(
-      "Cannot compute prediction without fund row and official NAV",
-    );
+  if (!baseNav) {
+    throw new Error("Cannot compute prediction without official NAV");
   }
-  if (!baseIndex && !baseFx) {
-    throw new Error(
-      "Cannot compute prediction without any upstream market data",
-    );
-  }
-
-  const baseNavBusinessDate = normalizeDateOnly(baseNav.business_date);
-
-  const prediction = buildPrediction({
-    fund: mapFund(fund),
-    baseNav: {
-      fundCode: String(baseNav.fund_code),
-      businessDate: baseNavBusinessDate,
-      nav: Number(baseNav.nav),
-      sourceName: String(baseNav.source_name),
-      sourceUrl: String(baseNav.source_url),
-      fetchedAt: String(baseNav.fetched_at),
-      rawPayload: String(baseNav.raw_payload),
-    },
-    baseIndex: baseIndex ? mapIndex(baseIndex) : null,
-    targetIndex: targetIndex ? mapIndex(targetIndex) : null,
-    baseFx: baseFx ? mapFx(baseFx) : null,
-    targetFx: targetFx ? mapFx(targetFx) : null,
-    targetBusinessDate: nextBusinessDate(baseNavBusinessDate),
-  });
-
+  const prediction = await buildPredictionForBaseNav(config, baseNav);
   await upsertPrediction(config.databaseUrl, prediction);
+}
+
+export async function runRecomputeAllPredictions(
+  config: AppConfig,
+): Promise<number> {
+  const sql = getSql(config.databaseUrl);
+  const baseNavRows = await sql`
+    select * from fund_nav_daily
+    where fund_code = ${config.fundCode}
+    order by business_date asc
+  `;
+
+  let recomputed = 0;
+  for (const baseNav of baseNavRows) {
+    const prediction = await buildPredictionForBaseNav(config, baseNav);
+    await upsertPrediction(config.databaseUrl, prediction);
+    recomputed += 1;
+  }
+
+  return recomputed;
 }
 
 function nextBusinessDate(yyyyMmDd: string): string {
@@ -135,6 +99,99 @@ function normalizeDateOnly(value: unknown): string {
   }
 
   throw new Error(`Unable to normalize date value: ${text}`);
+}
+
+async function buildPredictionForBaseNav(
+  config: AppConfig,
+  baseNavRow: Record<string, unknown>,
+): Promise<PredictionResult> {
+  const sql = getSql(config.databaseUrl);
+  const [fund] =
+    await sql`select * from funds where code = ${config.fundCode} limit 1`;
+
+  if (!fund) {
+    throw new Error("Cannot compute prediction without fund row");
+  }
+
+  const baseNavBusinessDate = normalizeDateOnly(baseNavRow.business_date);
+  const targetBusinessDate = nextBusinessDate(baseNavBusinessDate);
+
+  const [baseIndex] = await sql`
+    select * from market_index_daily
+    where symbol = '^GSPC'
+      and trade_date <= ${baseNavRow.business_date}
+    order by trade_date desc
+    limit 1
+  `;
+  const [targetIndex] = await sql`
+    select * from market_index_daily
+    where symbol = '^GSPC'
+      and trade_date <= ${targetBusinessDate}
+    order by trade_date desc
+    limit 1
+  `;
+  const [baseFx] = await sql`
+    select * from fx_daily
+    where currency_pair = 'USD/JPY'
+      and business_date <= ${baseNavRow.business_date}
+    order by business_date desc
+    limit 1
+  `;
+  const [targetFx] = await sql`
+    select * from fx_daily
+    where currency_pair = 'USD/JPY'
+      and business_date <= ${targetBusinessDate}
+    order by business_date desc
+    limit 1
+  `;
+
+  if (!baseIndex && !baseFx) {
+    throw new Error(
+      `Cannot compute prediction for ${baseNavBusinessDate} without any upstream market data`,
+    );
+  }
+
+  return buildPrediction(
+    {
+      fund: mapFund(fund),
+      baseNav: {
+        fundCode: String(baseNavRow.fund_code),
+        businessDate: baseNavBusinessDate,
+        nav: Number(baseNavRow.nav),
+        sourceName: String(baseNavRow.source_name),
+        sourceUrl: String(baseNavRow.source_url),
+        fetchedAt: String(baseNavRow.fetched_at),
+        rawPayload: String(baseNavRow.raw_payload),
+      },
+      baseIndex: baseIndex ? mapIndex(baseIndex) : null,
+      targetIndex: targetIndex ? mapIndex(targetIndex) : null,
+      baseFx: baseFx ? mapFx(baseFx) : null,
+      targetFx: targetFx ? mapFx(targetFx) : null,
+      targetBusinessDate,
+    },
+    inferComputedAt(baseNavRow, targetIndex, targetFx),
+  );
+}
+
+function inferComputedAt(
+  baseNavRow: Record<string, unknown>,
+  targetIndex: Record<string, unknown> | undefined,
+  targetFx: Record<string, unknown> | undefined,
+): string {
+  const timestamps = [
+    baseNavRow.fetched_at,
+    targetIndex?.fetched_at,
+    targetFx?.fetched_at,
+  ]
+    .filter(Boolean)
+    .map((value) => new Date(String(value)).getTime())
+    .filter((value) => !Number.isNaN(value));
+
+  if (timestamps.length === 0) {
+    return new Date().toISOString();
+  }
+
+  return new Date(Math.max(...timestamps)).toISOString();
 }
 
 function mapFund(row: Record<string, unknown>): FundRecord {
