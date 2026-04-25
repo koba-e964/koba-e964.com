@@ -63,18 +63,11 @@ export function dedupePredictionHistory(
 ): RawHistoryRow[] {
   const predictionRows = rows
     .filter((row) => row.prediction_business_date)
-    .sort((left, right) => {
-      const byBusinessDate = toNullableIsoString(
-        left.prediction_business_date,
-      )!.localeCompare(toNullableIsoString(right.prediction_business_date)!);
-      if (byBusinessDate !== 0) {
-        return byBusinessDate;
-      }
-
-      return toNullableIsoString(left.event_at)!.localeCompare(
+    .sort((left, right) =>
+      toNullableIsoString(left.event_at)!.localeCompare(
         toNullableIsoString(right.event_at)!,
-      );
-    });
+      ),
+    );
 
   const predictionRowsToKeep = new Set<string>();
   let previousKeptPrediction: RawHistoryRow | undefined;
