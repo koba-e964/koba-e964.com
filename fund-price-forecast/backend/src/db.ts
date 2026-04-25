@@ -113,6 +113,10 @@ export async function upsertMarketIndex(
       source_url = excluded.source_url,
       fetched_at = excluded.fetched_at,
       raw_payload = excluded.raw_payload
+    where market_index_daily.close_value is distinct from excluded.close_value
+      or market_index_daily.currency is distinct from excluded.currency
+      or market_index_daily.source_name is distinct from excluded.source_name
+      or market_index_daily.source_url is distinct from excluded.source_url
   `;
 }
 
@@ -136,6 +140,11 @@ export async function upsertFx(
       source_url = excluded.source_url,
       fetched_at = excluded.fetched_at,
       raw_payload = excluded.raw_payload
+    where fx_daily.tts is distinct from excluded.tts
+      or fx_daily.ttb is distinct from excluded.ttb
+      or fx_daily.ttm is distinct from excluded.ttm
+      or fx_daily.source_name is distinct from excluded.source_name
+      or fx_daily.source_url is distinct from excluded.source_url
   `;
 }
 
@@ -157,6 +166,9 @@ export async function upsertFundNav(
       source_url = excluded.source_url,
       fetched_at = excluded.fetched_at,
       raw_payload = excluded.raw_payload
+    where fund_nav_daily.nav is distinct from excluded.nav
+      or fund_nav_daily.source_name is distinct from excluded.source_name
+      or fund_nav_daily.source_url is distinct from excluded.source_url
   `;
 }
 
@@ -186,6 +198,14 @@ export async function upsertPrediction(
       fee_adjustment_factor = excluded.fee_adjustment_factor,
       confidence_note = excluded.confidence_note,
       computed_at = excluded.computed_at
+    where fund_predictions_daily.status is distinct from excluded.status
+      or fund_predictions_daily.predicted_nav is distinct from excluded.predicted_nav
+      or fund_predictions_daily.predicted_from_trade_date is distinct from excluded.predicted_from_trade_date
+      or fund_predictions_daily.predicted_from_fx_date is distinct from excluded.predicted_from_fx_date
+      or fund_predictions_daily.used_index_value is distinct from excluded.used_index_value
+      or fund_predictions_daily.used_ttm is distinct from excluded.used_ttm
+      or fund_predictions_daily.fee_adjustment_factor is distinct from excluded.fee_adjustment_factor
+      or fund_predictions_daily.confidence_note is distinct from excluded.confidence_note
   `;
 }
 
