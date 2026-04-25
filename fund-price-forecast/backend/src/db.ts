@@ -12,6 +12,83 @@ export function getSql(databaseUrl: string) {
   return neon(databaseUrl);
 }
 
+type RawHistoryRow = {
+  event_at: string;
+  kind: string;
+  value: number | string | null;
+  value_currency: string | null;
+  note: string;
+  prediction_business_date: string | null;
+  index_date: string | null;
+  index_value: number | string | null;
+  index_event_at: string | null;
+  fx_date: string | null;
+  fx_value: number | string | null;
+  fx_event_at: string | null;
+};
+
+function toNullableNumber(value: number | string | null | undefined) {
+  return value === null || value === undefined ? null : Number(value);
+}
+
+function isSamePrediction(
+  left: RawHistoryRow | undefined,
+  right: RawHistoryRow,
+): boolean {
+  if (!left) {
+    return false;
+  }
+
+  return (
+    left.kind === right.kind &&
+    toNullableNumber(left.value) === toNullableNumber(right.value) &&
+    toNullableNumber(left.index_value) ===
+      toNullableNumber(right.index_value) &&
+    toNullableNumber(left.fx_value) === toNullableNumber(right.fx_value)
+  );
+}
+
+export function dedupePredictionHistory(
+  rows: RawHistoryRow[],
+): RawHistoryRow[] {
+  const predictionRows = rows
+    .filter((row) => row.prediction_business_date)
+    .sort((left, right) => {
+      const byBusinessDate = left.prediction_business_date!.localeCompare(
+        right.prediction_business_date!,
+      );
+      if (byBusinessDate !== 0) {
+        return byBusinessDate;
+      }
+
+      return left.event_at.localeCompare(right.event_at);
+    });
+
+  const predictionRowsToKeep = new Set<string>();
+  let previousKeptPrediction: RawHistoryRow | undefined;
+
+  for (const row of predictionRows) {
+    if (isSamePrediction(previousKeptPrediction, row)) {
+      continue;
+    }
+
+    predictionRowsToKeep.add(
+      `${row.kind}:${row.prediction_business_date}:${row.event_at}`,
+    );
+    previousKeptPrediction = row;
+  }
+
+  return rows.filter((row) => {
+    if (!row.prediction_business_date) {
+      return true;
+    }
+
+    return predictionRowsToKeep.has(
+      `${row.kind}:${row.prediction_business_date}:${row.event_at}`,
+    );
+  });
+}
+
 export async function upsertMarketIndex(
   databaseUrl: string,
   record: MarketIndexDailyRecord,
@@ -150,15 +227,17 @@ export async function getPublicLatestPayload(
     order by business_date desc
     limit 1
   `;
-  const historyRows = await sql`
+  const historyRows = (await sql`
     with combined as (
       select fetched_at as event_at, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note,
+        null::date as prediction_business_date,
         null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
         null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fund_nav_daily
       where fund_code = ${fundCode}
       union all
       select p.computed_at as event_at, p.status::text as kind, p.predicted_nav::double precision as value, 'JPY'::text as value_currency, p.confidence_note::text as note,
+        p.business_date as prediction_business_date,
         p.predicted_from_trade_date as index_date, p.used_index_value::double precision as index_value, idx.fetched_at as index_event_at,
         p.predicted_from_fx_date as fx_date, p.used_ttm::double precision as fx_value, fx.fetched_at as fx_event_at
       from fund_predictions_daily p
@@ -185,22 +264,24 @@ export async function getPublicLatestPayload(
       where p.fund_code = ${fundCode}
       union all
       select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
+        null::date as prediction_business_date,
         null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
         null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from market_index_daily
       where symbol = '^GSPC'
       union all
       select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note,
+        null::date as prediction_business_date,
         null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
         null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fx_daily
       where currency_pair = 'USD/JPY'
     )
-    select event_at, kind, value, value_currency, note, index_date, index_value, index_event_at, fx_date, fx_value, fx_event_at
+    select event_at, kind, value, value_currency, note, prediction_business_date, index_date, index_value, index_event_at, fx_date, fx_value, fx_event_at
     from combined
     order by event_at desc
-    limit 30
-  `;
+    limit 90
+  `) as RawHistoryRow[];
 
   if (!latestOfficialNav || !latestPrediction || !latestSp500 || !latestFx) {
     return null;
@@ -238,30 +319,27 @@ export async function getPublicLatestPayload(
         ttm: Number(latestFx.ttm),
       },
     },
-    history: historyRows.map((row) => ({
-      eventAt: row.event_at,
-      kind: row.kind,
-      value: row.value === null ? null : Number(row.value),
-      valueCurrency:
-        row.value_currency === "JPY" ||
-        row.value_currency === "USD" ||
-        row.value_currency === "FX"
-          ? row.value_currency
-          : undefined,
-      note: row.note,
-      indexDate: row.index_date,
-      indexValue:
-        row.index_value === null || row.index_value === undefined
-          ? null
-          : Number(row.index_value),
-      indexEventAt: row.index_event_at,
-      fxDate: row.fx_date,
-      fxValue:
-        row.fx_value === null || row.fx_value === undefined
-          ? null
-          : Number(row.fx_value),
-      fxEventAt: row.fx_event_at,
-    })),
+    history: dedupePredictionHistory(historyRows)
+      .sort((left, right) => right.event_at.localeCompare(left.event_at))
+      .slice(0, 30)
+      .map((row) => ({
+        eventAt: row.event_at,
+        kind: row.kind as PublicLatestPayload["history"][number]["kind"],
+        value: toNullableNumber(row.value),
+        valueCurrency:
+          row.value_currency === "JPY" ||
+          row.value_currency === "USD" ||
+          row.value_currency === "FX"
+            ? row.value_currency
+            : undefined,
+        note: row.note,
+        indexDate: row.index_date,
+        indexValue: toNullableNumber(row.index_value),
+        indexEventAt: row.index_event_at,
+        fxDate: row.fx_date,
+        fxValue: toNullableNumber(row.fx_value),
+        fxEventAt: row.fx_event_at,
+      })),
     assumptions: [
       "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",
       "信託報酬は一日先では無視し、長期予測では年率から日割り換算する。",
