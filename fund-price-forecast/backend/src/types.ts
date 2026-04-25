@@ -108,8 +108,10 @@ export interface PublicLatestPayload {
     note: string;
     indexDate?: string | null;
     indexValue?: number | null;
+    indexEventAt?: string | null;
     fxDate?: string | null;
     fxValue?: number | null;
+    fxEventAt?: string | null;
   }>;
   assumptions: string[];
 }

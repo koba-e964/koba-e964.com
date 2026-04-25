@@ -153,27 +153,50 @@ export async function getPublicLatestPayload(
   const historyRows = await sql`
     with combined as (
       select fetched_at as event_at, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note,
-        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
+        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fund_nav_daily
       where fund_code = ${fundCode}
       union all
-      select computed_at as event_at, status::text as kind, predicted_nav::double precision as value, 'JPY'::text as value_currency, confidence_note::text as note,
-        predicted_from_trade_date as index_date, used_index_value::double precision as index_value,
-        predicted_from_fx_date as fx_date, used_ttm::double precision as fx_value
-      from fund_predictions_daily
-      where fund_code = ${fundCode}
+      select p.computed_at as event_at, p.status::text as kind, p.predicted_nav::double precision as value, 'JPY'::text as value_currency, p.confidence_note::text as note,
+        p.predicted_from_trade_date as index_date, p.used_index_value::double precision as index_value, idx.fetched_at as index_event_at,
+        p.predicted_from_fx_date as fx_date, p.used_ttm::double precision as fx_value, fx.fetched_at as fx_event_at
+      from fund_predictions_daily p
+      left join lateral (
+        select fetched_at
+        from market_index_daily
+        where symbol = '^GSPC'
+          and trade_date = p.predicted_from_trade_date
+          and close_value = p.used_index_value
+          and fetched_at <= p.computed_at
+        order by fetched_at desc
+        limit 1
+      ) idx on true
+      left join lateral (
+        select fetched_at
+        from fx_daily
+        where currency_pair = 'USD/JPY'
+          and business_date = p.predicted_from_fx_date
+          and ttm = p.used_ttm
+          and fetched_at <= p.computed_at
+        order by fetched_at desc
+        limit 1
+      ) fx on true
+      where p.fund_code = ${fundCode}
       union all
       select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
-        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
+        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from market_index_daily
       where symbol = '^GSPC'
       union all
       select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note,
-        null::date as index_date, null::double precision as index_value, null::date as fx_date, null::double precision as fx_value
+        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fx_daily
       where currency_pair = 'USD/JPY'
     )
-    select event_at, kind, value, value_currency, note, index_date, index_value, fx_date, fx_value
+    select event_at, kind, value, value_currency, note, index_date, index_value, index_event_at, fx_date, fx_value, fx_event_at
     from combined
     order by event_at desc
     limit 30
@@ -231,11 +254,13 @@ export async function getPublicLatestPayload(
         row.index_value === null || row.index_value === undefined
           ? null
           : Number(row.index_value),
+      indexEventAt: row.index_event_at,
       fxDate: row.fx_date,
       fxValue:
         row.fx_value === null || row.fx_value === undefined
           ? null
           : Number(row.fx_value),
+      fxEventAt: row.fx_event_at,
     })),
     assumptions: [
       "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",

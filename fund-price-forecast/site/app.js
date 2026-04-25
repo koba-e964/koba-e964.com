@@ -127,14 +127,14 @@ function formatHistoryNote(row) {
     const noteParts = [];
     if (typeof row.indexValue === "number" && row.indexDate) {
       noteParts.push(
-        `S&P 500 反映済み (${formatNumber(row.indexValue, 2)}, ${formatDateOnly(row.indexDate)})`
+        `S&P 500 反映済み (${formatNumber(row.indexValue, 2)}, ${row.indexEventAt ? formatDateTime(row.indexEventAt) : formatDateOnly(row.indexDate)})`
       );
     } else {
       noteParts.push("S&P 500 は未反映");
     }
     if (typeof row.fxValue === "number" && row.fxDate) {
       noteParts.push(
-        `TTM 反映済み (${formatNumber(row.fxValue, 3)}, ${formatDateOnly(row.fxDate)})`
+        `TTM 反映済み (${formatNumber(row.fxValue, 3)}, ${row.fxEventAt ? formatDateTime(row.fxEventAt) : formatDateOnly(row.fxDate)})`
       );
     } else {
       noteParts.push("TTM は未反映");
