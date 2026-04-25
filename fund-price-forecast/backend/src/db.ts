@@ -13,22 +13,32 @@ export function getSql(databaseUrl: string) {
 }
 
 type RawHistoryRow = {
-  event_at: string;
+  event_at: string | Date;
   kind: string;
   value: number | string | null;
   value_currency: string | null;
   note: string;
-  prediction_business_date: string | null;
-  index_date: string | null;
+  prediction_business_date: string | Date | null;
+  index_date: string | Date | null;
   index_value: number | string | null;
-  index_event_at: string | null;
-  fx_date: string | null;
+  index_event_at: string | Date | null;
+  fx_date: string | Date | null;
   fx_value: number | string | null;
-  fx_event_at: string | null;
+  fx_event_at: string | Date | null;
 };
 
 function toNullableNumber(value: number | string | null | undefined) {
   return value === null || value === undefined ? null : Number(value);
+}
+
+function toNullableIsoString(
+  value: string | Date | null | undefined,
+): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return value instanceof Date ? value.toISOString() : value;
 }
 
 function isSamePrediction(
@@ -54,14 +64,16 @@ export function dedupePredictionHistory(
   const predictionRows = rows
     .filter((row) => row.prediction_business_date)
     .sort((left, right) => {
-      const byBusinessDate = left.prediction_business_date!.localeCompare(
-        right.prediction_business_date!,
-      );
+      const byBusinessDate = toNullableIsoString(
+        left.prediction_business_date,
+      )!.localeCompare(toNullableIsoString(right.prediction_business_date)!);
       if (byBusinessDate !== 0) {
         return byBusinessDate;
       }
 
-      return left.event_at.localeCompare(right.event_at);
+      return toNullableIsoString(left.event_at)!.localeCompare(
+        toNullableIsoString(right.event_at)!,
+      );
     });
 
   const predictionRowsToKeep = new Set<string>();
@@ -73,7 +85,7 @@ export function dedupePredictionHistory(
     }
 
     predictionRowsToKeep.add(
-      `${row.kind}:${row.prediction_business_date}:${row.event_at}`,
+      `${row.kind}:${toNullableIsoString(row.prediction_business_date)}:${toNullableIsoString(row.event_at)}`,
     );
     previousKeptPrediction = row;
   }
@@ -84,7 +96,7 @@ export function dedupePredictionHistory(
     }
 
     return predictionRowsToKeep.has(
-      `${row.kind}:${row.prediction_business_date}:${row.event_at}`,
+      `${row.kind}:${toNullableIsoString(row.prediction_business_date)}:${toNullableIsoString(row.event_at)}`,
     );
   });
 }
@@ -320,10 +332,14 @@ export async function getPublicLatestPayload(
       },
     },
     history: dedupePredictionHistory(historyRows)
-      .sort((left, right) => right.event_at.localeCompare(left.event_at))
+      .sort((left, right) =>
+        toNullableIsoString(right.event_at)!.localeCompare(
+          toNullableIsoString(left.event_at)!,
+        ),
+      )
       .slice(0, 30)
       .map((row) => ({
-        eventAt: row.event_at,
+        eventAt: toNullableIsoString(row.event_at)!,
         kind: row.kind as PublicLatestPayload["history"][number]["kind"],
         value: toNullableNumber(row.value),
         valueCurrency:
@@ -333,12 +349,12 @@ export async function getPublicLatestPayload(
             ? row.value_currency
             : undefined,
         note: row.note,
-        indexDate: row.index_date,
+        indexDate: toNullableIsoString(row.index_date),
         indexValue: toNullableNumber(row.index_value),
-        indexEventAt: row.index_event_at,
-        fxDate: row.fx_date,
+        indexEventAt: toNullableIsoString(row.index_event_at),
+        fxDate: toNullableIsoString(row.fx_date),
         fxValue: toNullableNumber(row.fx_value),
-        fxEventAt: row.fx_event_at,
+        fxEventAt: toNullableIsoString(row.fx_event_at),
       })),
     assumptions: [
       "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",

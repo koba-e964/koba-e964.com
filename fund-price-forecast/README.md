@@ -175,3 +175,13 @@ SP500_SOURCE_URL='https://finance.yahoo.co.jp/quote/%5EGSPC' npm run source:chec
 ```
 
 `fund` は `FUND_CODE` も上書きできます。
+
+## ローカルで API payload を試す
+
+deploy 前に `readPublicData` 相当の payload をローカルで確認したいときは、`fund-price-forecast/backend/` で次を実行します。
+
+```sh
+DATABASE_URL='postgresql://...' npm run payload:check -- 253266
+```
+
+これで `getPublicLatestPayload()` の結果をそのまま JSON で確認できます。Lambda に deploy する前の最終確認用です。
