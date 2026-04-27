@@ -16,7 +16,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-tsumeshogi-web-solver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Clone tsumeshogi-web-solver
+        run: git clone --depth=1 https://github.com/koba-e964/tsumeshogi-web-solver.git external/tsumeshogi-web-solver
+
+      - name: Build tsumeshogi-web-solver
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack --version 0.14.0 --locked
+          npm ci
+          npm run build
+        working-directory: external/tsumeshogi-web-solver/www
+
+      - name: Upload tsumeshogi-web-solver artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsumeshogi-web-solver-dist
+          path: external/tsumeshogi-web-solver/www/dist
+
   deploy:
+    needs:
+      - build-tsumeshogi-web-solver
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -25,15 +52,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Download tsumeshogi-web-solver artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tsumeshogi-web-solver-dist
+          path: external/tsumeshogi-web-solver/www/dist
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Assemble Pages artifact
         run: |
           rm -rf dist-pages
-          mkdir -p dist-pages/fund-price-forecast
+          mkdir -p dist-pages/fund-price-forecast dist-pages/tsumeshogi-web-solver
           cp -R pages/. dist-pages/
           cp -R fund-price-forecast/site/. dist-pages/fund-price-forecast/
+          cp -R external/tsumeshogi-web-solver/www/dist/. dist-pages/tsumeshogi-web-solver/
           cat > dist-pages/fund-price-forecast/local-config.js <<EOF
           window.APP_CONFIG = {
             apiBaseUrl: ${API_BASE_URL_JSON},
