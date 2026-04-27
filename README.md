@@ -14,6 +14,9 @@
 - `tsumeshogi-web-solver/`
   - `/tsumeshogi-web-solver/` 配信用メモ
   - 実体は upstream repo を workflow 内で clone / build して配信
+- `atcoder-rating-estimator/`
+  - `/atcoder-rating-estimator/` 配信用メモ
+  - 実体は upstream repo を workflow 内で clone / copy して配信
 - `codex-notes/`
   - 実装メモと計画
 
@@ -25,10 +28,13 @@
 - `/tsumeshogi-web-solver/`
   - 詰将棋 Web ソルバー
   - 詳細は [tsumeshogi-web-solver/README.md](/Users/kobas-mac/srcview/koba-e964.com/tsumeshogi-web-solver/README.md)
+- `/atcoder-rating-estimator/`
+  - AtCoder Rating Estimator
+  - 詳細は [atcoder-rating-estimator/README.md](/Users/kobas-mac/srcview/koba-e964.com/atcoder-rating-estimator/README.md)
 
 ## GitHub Pages
 
-- `.github/workflows/deploy-pages.yml` で `pages/` と `fund-price-forecast/site/` を組み立て、`tsumeshogi-web-solver` は upstream repo を build して Pages に配信します。
+- `.github/workflows/deploy-pages.yml` で `pages/` と `fund-price-forecast/site/` を組み立て、`tsumeshogi-web-solver` と `atcoder-rating-estimator` は upstream repo を clone して Pages に配信します。
 - `pages/` 直下にはトップページ、`CNAME`、`ads.txt` を置きます。
 - アプリごとの公開物は repo 内静的ファイルか upstream build のどちらかで持ち、workflow で公開パスへ配置します。
 
