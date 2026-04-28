@@ -278,7 +278,8 @@ export async function getPublicLatestPayload(
     limit 1
   `;
   const [latestPrediction] = await sql`
-    select business_date, status, predicted_nav, confidence_note
+    select business_date, status, predicted_nav, confidence_note,
+      used_index_value, used_ttm, fee_adjustment_factor
     from fund_predictions_daily
     where fund_code = ${fundCode}
     order by business_date desc, computed_at desc
@@ -295,6 +296,22 @@ export async function getPublicLatestPayload(
     select business_date, tts, ttb, ttm
     from fx_daily
     where currency_pair = 'USD/JPY'
+    order by business_date desc
+    limit 1
+  `;
+  const [baseIndexForLatestPrediction] = await sql`
+    select trade_date, close_value
+    from market_index_daily
+    where symbol = '^GSPC'
+      and trade_date <= ${latestOfficialNav?.business_date ?? null}
+    order by trade_date desc
+    limit 1
+  `;
+  const [baseFxForLatestPrediction] = await sql`
+    select business_date, ttm
+    from fx_daily
+    where currency_pair = 'USD/JPY'
+      and business_date <= ${latestOfficialNav?.business_date ?? null}
     order by business_date desc
     limit 1
   `;
@@ -375,6 +392,26 @@ export async function getPublicLatestPayload(
       status: latestPrediction.status,
       predictedNav: Number(latestPrediction.predicted_nav),
       confidenceNote: latestPrediction.confidence_note,
+      formula: {
+        baseNav: Number(latestOfficialNav.nav),
+        baseIndexValue:
+          baseIndexForLatestPrediction?.close_value == null
+            ? null
+            : Number(baseIndexForLatestPrediction.close_value),
+        targetIndexValue:
+          latestPrediction.used_index_value == null
+            ? null
+            : Number(latestPrediction.used_index_value),
+        baseTtm:
+          baseFxForLatestPrediction?.ttm == null
+            ? null
+            : Number(baseFxForLatestPrediction.ttm),
+        targetTtm:
+          latestPrediction.used_ttm == null
+            ? null
+            : Number(latestPrediction.used_ttm),
+        feeAdjustmentFactor: Number(latestPrediction.fee_adjustment_factor),
+      },
     },
     latestSources: {
       sp500: {

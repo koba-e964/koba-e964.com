@@ -14,7 +14,15 @@
     "businessDate": "2026-04-14",
     "status": "estimated_complete_inputs",
     "predictedNav": 35620,
-    "confidenceNote": "S&P 500 終値と TTM が揃っているため近似値を計算済み"
+    "confidenceNote": "S&P 500 終値と TTM が揃っているため近似値を計算済み",
+    "formula": {
+      "baseNav": 35510,
+      "baseIndexValue": 5200,
+      "targetIndexValue": 5220.44,
+      "baseTtm": 144,
+      "targetTtm": 144.88,
+      "feeAdjustmentFactor": 1
+    }
   },
   "latestSources": {
     "sp500": {

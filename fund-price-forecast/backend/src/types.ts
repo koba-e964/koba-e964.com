@@ -92,6 +92,14 @@ export interface PublicLatestPayload {
     status: PredictionStatus;
     predictedNav: number;
     confidenceNote: string;
+    formula: {
+      baseNav: number;
+      baseIndexValue: number | null;
+      targetIndexValue: number | null;
+      baseTtm: number | null;
+      targetTtm: number | null;
+      feeAdjustmentFactor: number;
+    };
   };
   latestSources: {
     sp500: Pick<

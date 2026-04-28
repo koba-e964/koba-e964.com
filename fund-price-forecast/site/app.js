@@ -95,6 +95,41 @@ function formatNumber(value, digits = 2) {
   }).format(value);
 }
 
+function formatPythonNumber(value, digits) {
+  if (typeof value !== "number") {
+    return "None";
+  }
+  return value.toFixed(digits);
+}
+
+function formatPredictionFormula(latestOfficialNav, latestPrediction) {
+  const formula = latestPrediction?.formula;
+  if (!formula) {
+    return "式を表示できません";
+  }
+
+  const baseNav = formatPythonNumber(formula.baseNav, 0);
+  const indexPart =
+    typeof formula.baseIndexValue === "number" &&
+    typeof formula.targetIndexValue === "number"
+      ? `(${formatPythonNumber(formula.targetIndexValue, 2)} / ${formatPythonNumber(formula.baseIndexValue, 2)})`
+      : "1";
+  const fxPart =
+    typeof formula.baseTtm === "number" && typeof formula.targetTtm === "number"
+      ? `(${formatPythonNumber(formula.targetTtm, 3)} / ${formatPythonNumber(formula.baseTtm, 3)})`
+      : "1";
+
+  const parts = [baseNav, indexPart, fxPart];
+  if (
+    typeof formula.feeAdjustmentFactor === "number" &&
+    Math.abs(formula.feeAdjustmentFactor - 1) > 1e-9
+  ) {
+    parts.push(formatPythonNumber(formula.feeAdjustmentFactor, 9));
+  }
+
+  return parts.join(" * ");
+}
+
 function formatDateTime(value) {
   if (!value) {
     return "時刻未取得";
@@ -185,6 +220,11 @@ function renderApp(payload, sourceLabel) {
     fragment,
     "prediction-note",
     `${formatDateOnly(latestPrediction.businessDate)} 向け / ${latestPrediction.confidenceNote}`
+  );
+  setField(
+    fragment,
+    "prediction-formula",
+    formatPredictionFormula(latestOfficialNav, latestPrediction)
   );
   setField(fragment, "sp500-value", formatNumber(latestSources.sp500.closeValue, 2));
   setField(
