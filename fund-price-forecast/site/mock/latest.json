@@ -60,17 +60,25 @@
       "valueCurrency": "JPY",
       "note": "公式基準価額"
     },
-    {
-      "eventAt": "2026-04-14T07:30:00+09:00",
-      "kind": "estimated_complete_inputs",
-      "value": 35620,
-      "valueCurrency": "JPY",
-      "note": "v1 モデルによる推定値",
-      "indexDate": "2026-04-10",
-      "indexValue": 5220.44,
-      "indexEventAt": "2026-04-13T07:05:00+09:00",
-      "fxDate": "2026-04-13",
-      "fxValue": 144.88,
+        {
+            "eventAt": "2026-04-14T07:30:00+09:00",
+            "kind": "estimated_complete_inputs",
+            "value": 35620,
+            "valueCurrency": "JPY",
+            "note": "v1 モデルによる推定値",
+            "formula": {
+                "baseNav": 35510,
+                "baseIndexValue": 5200,
+                "targetIndexValue": 5220.44,
+                "baseTtm": 144,
+                "targetTtm": 144.88,
+                "feeAdjustmentFactor": 1
+            },
+            "indexDate": "2026-04-10",
+            "indexValue": 5220.44,
+            "indexEventAt": "2026-04-13T07:05:00+09:00",
+            "fxDate": "2026-04-13",
+            "fxValue": 144.88,
       "fxEventAt": "2026-04-13T10:00:00+09:00"
     },
     {

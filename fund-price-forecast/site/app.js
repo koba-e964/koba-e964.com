@@ -130,6 +130,33 @@ function formatPredictionFormula(latestOfficialNav, latestPrediction) {
   return parts.join(" * ");
 }
 
+function formatPredictionFormulaFromFormula(formula) {
+  if (!formula || typeof formula.baseNav !== "number") {
+    return "式を表示できません";
+  }
+
+  const baseNav = formatPythonNumber(formula.baseNav, 0);
+  const indexPart =
+    typeof formula.baseIndexValue === "number" &&
+    typeof formula.targetIndexValue === "number"
+      ? `(${formatPythonNumber(formula.targetIndexValue, 2)} / ${formatPythonNumber(formula.baseIndexValue, 2)})`
+      : "1";
+  const fxPart =
+    typeof formula.baseTtm === "number" && typeof formula.targetTtm === "number"
+      ? `(${formatPythonNumber(formula.targetTtm, 3)} / ${formatPythonNumber(formula.baseTtm, 3)})`
+      : "1";
+
+  const parts = [baseNav, indexPart, fxPart];
+  if (
+    typeof formula.feeAdjustmentFactor === "number" &&
+    Math.abs(formula.feeAdjustmentFactor - 1) > 1e-9
+  ) {
+    parts.push(formatPythonNumber(formula.feeAdjustmentFactor, 9));
+  }
+
+  return parts.join(" * ");
+}
+
 function formatDateTime(value) {
   if (!value) {
     return "時刻未取得";
@@ -176,6 +203,9 @@ function formatHistoryNote(row) {
     }
     if (row.kind === "estimated_long_horizon") {
       noteParts.push("長期補正あり");
+    }
+    if (row.formula) {
+      noteParts.push(`式: ${formatPredictionFormulaFromFormula(row.formula)}`);
     }
     return noteParts.join(" / ");
   }

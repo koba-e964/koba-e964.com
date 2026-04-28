@@ -120,6 +120,14 @@ export interface PublicLatestPayload {
     fxDate?: string | null;
     fxValue?: number | null;
     fxEventAt?: string | null;
+    formula?: {
+      baseNav: number;
+      baseIndexValue: number | null;
+      targetIndexValue: number | null;
+      baseTtm: number | null;
+      targetTtm: number | null;
+      feeAdjustmentFactor: number;
+    } | null;
   }>;
   assumptions: string[];
 }
