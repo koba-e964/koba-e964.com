@@ -18,14 +18,30 @@ import type {
 } from "./types.js";
 
 export async function runIngestMarketData(config: AppConfig): Promise<void> {
-  const [sp500, fx] = await Promise.all([
-    fetchGoogleSp500Tr(config.sp500SourceUrl, config.sp500Symbol),
-    fetchMufgFx(config.mufgFxUrl),
-  ]);
+  const sp500 = await fetchGoogleSp500Tr(
+    config.sp500SourceUrl,
+    config.sp500Symbol,
+  );
+  let fx: Awaited<ReturnType<typeof fetchMufgFx>> | null = null;
+
+  try {
+    fx = await fetchMufgFx(config.mufgFxUrl);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "MUFG FX quote not published yet"
+    ) {
+      console.warn(
+        "Skipping FX ingest because today's quote is not published yet",
+      );
+    } else {
+      throw error;
+    }
+  }
 
   await Promise.all([
     upsertMarketIndex(config.databaseUrl, sp500),
-    upsertFx(config.databaseUrl, fx),
+    fx ? upsertFx(config.databaseUrl, fx) : Promise.resolve(),
   ]);
 }
 

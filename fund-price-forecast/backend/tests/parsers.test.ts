@@ -55,7 +55,7 @@ test("parseMufgFxHtml extracts TTS TTB TTM", () => {
       <body>
         <h2>As of April 13, 2026</h2>
         <table>
-          <tr><td>US Dollar</td><td>USD</td><td>145.88</td><td>143.88</td></tr>
+          <tr><td>US Dollar</td><td>米ドル</td><td>USD</td><td class="t_right">145.88</td><td class="t_right">143.88</td></tr>
         </table>
       </body>
     </html>
@@ -67,6 +67,28 @@ test("parseMufgFxHtml extracts TTS TTB TTM", () => {
   );
   assert.equal(record.businessDate, "2026-04-13");
   assert.equal(record.ttm, 144.88);
+});
+
+test("parseMufgFxHtml rejects unpublished rows", () => {
+  const html = `
+    <html>
+      <body>
+        <h2>As of April 30, 2026</h2>
+        <table>
+          <tr><td>US Dollar</td><td>米ドル</td><td>USD</td><td class="t_right">-</td><td class="t_right">-</td></tr>
+        </table>
+      </body>
+    </html>
+  `;
+  assert.throws(
+    () =>
+      parseMufgFxHtml(
+        html,
+        "https://www.murc-kawasesouba.jp/fx/index.php",
+        "2026-04-30T00:00:00Z",
+      ),
+    /MUFG FX quote not published yet/,
+  );
 });
 
 test("parseEmaxisFundJson extracts date and NAV", () => {

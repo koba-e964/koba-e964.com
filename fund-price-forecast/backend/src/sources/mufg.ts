@@ -24,6 +24,31 @@ function midpoint(tts: number, ttb: number): number {
   return Number(((tts + ttb) / 2).toFixed(6));
 }
 
+function extractUsdRow(html: string): string | null {
+  return (
+    html.match(
+      /<tr>[\s\S]{0,400}?(?:US Dollar|米ドル)[\s\S]{0,200}?<td[^>]*>\s*USD\s*<\/td>[\s\S]{0,300}?<\/tr>/i,
+    )?.[0] ?? null
+  );
+}
+
+function extractUsdQuotes(
+  usdRowHtml: string,
+): { tts: string; ttb: string } | null {
+  const quoteCells = [
+    ...usdRowHtml.matchAll(
+      /<td[^>]*class="t_right"[^>]*>\s*([^<]+?)\s*<\/td>/gi,
+    ),
+  ].map((match) => match[1].trim());
+  if (quoteCells.length < 2) {
+    return null;
+  }
+  return {
+    tts: quoteCells[0],
+    ttb: quoteCells[1],
+  };
+}
+
 export function parseMufgFxHtml(
   html: string,
   sourceUrl: string,
@@ -35,16 +60,15 @@ export function parseMufgFxHtml(
   const englishDateMatch = html.match(
     /As of\s+([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/i,
   );
-  const usdRowMatch =
-    html.match(
-      /(?:US Dollar|米ドル)[\s\S]{0,300}?(?:USD)?[\s\S]{0,80}?([0-9]+\.[0-9]+)[\s\S]{0,80}?([0-9]+\.[0-9]+)/,
-    ) ||
-    html.match(
-      /USD[\s\S]{0,120}?([0-9]+\.[0-9]+)[\s\S]{0,80}?([0-9]+\.[0-9]+)/,
-    );
+  const usdRowHtml = extractUsdRow(html);
+  const usdQuotes = usdRowHtml ? extractUsdQuotes(usdRowHtml) : null;
 
-  if ((!numericDateMatch && !englishDateMatch) || !usdRowMatch) {
+  if ((!numericDateMatch && !englishDateMatch) || !usdQuotes) {
     throw new Error("Unable to parse MUFG FX HTML");
+  }
+
+  if (usdQuotes.tts === "-" || usdQuotes.ttb === "-") {
+    throw new Error("MUFG FX quote not published yet");
   }
 
   const [year, month, day] = numericDateMatch
@@ -54,8 +78,8 @@ export function parseMufgFxHtml(
         EN_MONTHS[englishDateMatch![1].toLowerCase()],
         englishDateMatch![2].padStart(2, "0"),
       ];
-  const tts = toNumber(usdRowMatch[1]);
-  const ttb = toNumber(usdRowMatch[2]);
+  const tts = toNumber(usdQuotes.tts);
+  const ttb = toNumber(usdQuotes.ttb);
 
   return {
     businessDate: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
