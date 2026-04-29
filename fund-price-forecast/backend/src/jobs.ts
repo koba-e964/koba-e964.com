@@ -39,7 +39,15 @@ export async function runRecomputePredictions(
 ): Promise<void> {
   const sql = getSql(config.databaseUrl);
   const [baseNav] = await sql`
-    select * from fund_nav_daily
+    select
+      fund_code,
+      business_date::text as business_date,
+      nav,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from fund_nav_daily
     where fund_code = ${config.fundCode}
     order by business_date desc
     limit 1
@@ -47,7 +55,21 @@ export async function runRecomputePredictions(
   if (!baseNav) {
     throw new Error("Cannot compute prediction without official NAV");
   }
-  const prediction = await buildPredictionForBaseNav(config, baseNav);
+  const [latestFx] = await sql`
+    select business_date::text as business_date
+    from fx_daily
+    where currency_pair = 'USD/JPY'
+    order by business_date desc
+    limit 1
+  `;
+  const prediction = await buildPredictionForBaseNav(
+    config,
+    baseNav,
+    resolveTargetBusinessDate(
+      normalizeDateOnly(baseNav.business_date),
+      latestFx ? normalizeDateOnly(latestFx.business_date) : null,
+    ),
+  );
   await upsertPrediction(config.databaseUrl, prediction);
 }
 
@@ -56,7 +78,15 @@ export async function runRecomputeAllPredictions(
 ): Promise<number> {
   const sql = getSql(config.databaseUrl);
   const baseNavRows = await sql`
-    select * from fund_nav_daily
+    select
+      fund_code,
+      business_date::text as business_date,
+      nav,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from fund_nav_daily
     where fund_code = ${config.fundCode}
     order by business_date asc
   `;
@@ -75,6 +105,17 @@ function nextBusinessDate(yyyyMmDd: string): string {
   const next = new Date(`${yyyyMmDd}T00:00:00Z`);
   next.setUTCDate(next.getUTCDate() + 1);
   return next.toISOString().slice(0, 10);
+}
+
+export function resolveTargetBusinessDate(
+  baseNavBusinessDate: string,
+  latestFxBusinessDate: string | null,
+): string {
+  if (latestFxBusinessDate && latestFxBusinessDate > baseNavBusinessDate) {
+    return latestFxBusinessDate;
+  }
+
+  return nextBusinessDate(baseNavBusinessDate);
 }
 
 function normalizeDateOnly(value: unknown): string {
@@ -104,6 +145,7 @@ function normalizeDateOnly(value: unknown): string {
 async function buildPredictionForBaseNav(
   config: AppConfig,
   baseNavRow: Record<string, unknown>,
+  targetBusinessDateOverride?: string,
 ): Promise<PredictionResult> {
   const sql = getSql(config.databaseUrl);
   const [fund] =
@@ -114,31 +156,70 @@ async function buildPredictionForBaseNav(
   }
 
   const baseNavBusinessDate = normalizeDateOnly(baseNavRow.business_date);
-  const targetBusinessDate = nextBusinessDate(baseNavBusinessDate);
+  const targetBusinessDate =
+    targetBusinessDateOverride ?? nextBusinessDate(baseNavBusinessDate);
 
   const [baseIndex] = await sql`
-    select * from market_index_daily
+    select
+      trade_date::text as trade_date,
+      symbol,
+      close_value,
+      currency,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from market_index_daily
     where symbol = '^GSPC'
       and trade_date <= ${baseNavRow.business_date}
     order by trade_date desc
     limit 1
   `;
   const [targetIndex] = await sql`
-    select * from market_index_daily
+    select
+      trade_date::text as trade_date,
+      symbol,
+      close_value,
+      currency,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from market_index_daily
     where symbol = '^GSPC'
       and trade_date <= ${targetBusinessDate}
     order by trade_date desc
     limit 1
   `;
   const [baseFx] = await sql`
-    select * from fx_daily
+    select
+      business_date::text as business_date,
+      currency_pair,
+      tts,
+      ttb,
+      ttm,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from fx_daily
     where currency_pair = 'USD/JPY'
       and business_date <= ${baseNavRow.business_date}
     order by business_date desc
     limit 1
   `;
   const [targetFx] = await sql`
-    select * from fx_daily
+    select
+      business_date::text as business_date,
+      currency_pair,
+      tts,
+      ttb,
+      ttm,
+      source_name,
+      source_url,
+      fetched_at,
+      raw_payload
+    from fx_daily
     where currency_pair = 'USD/JPY'
       and business_date <= ${targetBusinessDate}
     order by business_date desc
