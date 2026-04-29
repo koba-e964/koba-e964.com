@@ -93,7 +93,22 @@ export async function runRecomputeAllPredictions(
 
   let recomputed = 0;
   for (const baseNav of baseNavRows) {
-    const prediction = await buildPredictionForBaseNav(config, baseNav);
+    const [nextFx] = await sql`
+      select business_date::text as business_date
+      from fx_daily
+      where currency_pair = 'USD/JPY'
+        and business_date > ${baseNav.business_date}
+      order by business_date asc
+      limit 1
+    `;
+    const prediction = await buildPredictionForBaseNav(
+      config,
+      baseNav,
+      resolveTargetBusinessDate(
+        normalizeDateOnly(baseNav.business_date),
+        nextFx ? normalizeDateOnly(nextFx.business_date) : null,
+      ),
+    );
     await upsertPrediction(config.databaseUrl, prediction);
     recomputed += 1;
   }
