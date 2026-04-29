@@ -75,7 +75,7 @@ python3 -m http.server 8000
 - MUFG TTM の取得
 - 公式基準価額の取得
 - Neon への履歴保存
-- `v1` 予測値の算出
+- `v2` 予測値の算出
 - フロント向け read-only API の返却
 
 ### 主要ファイル
@@ -99,11 +99,12 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 - `fx_ratio`: TTM の基準日比
 - `fee_factor`: 長期予測時のみ信託報酬を日割り近似した係数
 
-`eMAXIS Slim 米国株式（S&P500）` は「配当込み、円換算ベース」なので、この `v1` は近似モデルです。
+`eMAXIS Slim 米国株式（S&P500）` は「配当込み、円換算ベース」なので、現在は price index ではなく配当込み寄りの指数ソースを使う `v2` で近似しています。
 
 ### データ源メモ
 
 - 為替は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
+- 株価指数は Google Finance の `https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en` をデフォルト取得先にしています。
 - 公式基準価額は HTML ではなく、MUFG AM の JSON endpoint `https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266` をデフォルト取得先にしています。
 - API は `fund_nav_daily` / `fund_predictions_daily` / `market_index_daily` / `fx_daily` が揃うまで `503 data_not_ready` を返します。
 - フロントは `503 data_not_ready` を受けたとき、mock fallback ではなく「まだ ingest されていない」専用エラーを表示します。
@@ -171,7 +172,7 @@ npm run source:check -- sp500
 ```sh
 FUND_SOURCE_URL='https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266' npm run source:check -- fund
 MUFG_FX_SOURCE_URL='https://www.murc-kawasesouba.jp/fx/index.php' npm run source:check -- fx
-SP500_SOURCE_URL='https://finance.yahoo.co.jp/quote/%5EGSPC' npm run source:check -- sp500
+SP500_SOURCE_URL='https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en' SP500_SYMBOL='^SP500TR' npm run source:check -- sp500
 ```
 
 `fund` は `FUND_CODE` も上書きできます。

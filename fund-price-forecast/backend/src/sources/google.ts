@@ -1,6 +1,6 @@
 import type { MarketIndexDailyRecord } from "../types.js";
 
-const SOURCE_NAME = "Yahoo!ファイナンス";
+const SOURCE_NAME = "Google Finance";
 const NEW_YORK_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/New_York",
   weekday: "short",
@@ -45,49 +45,69 @@ function previousBusinessDate(yyyyMmDd: string): string {
   return cursor.toISOString().slice(0, 10);
 }
 
-export function parseYahooSp500Html(
+function escapeRegExp(raw: string): string {
+  return raw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractGoogleQuoteKey(sourceUrl: string): {
+  quoteCode: string;
+  exchangeCode: string;
+} {
+  const url = new URL(sourceUrl);
+  const match = url.pathname.match(/\/quote\/([^:/]+):([^/]+)/);
+  if (!match) {
+    throw new Error(
+      `Unable to infer Google Finance quote key from ${sourceUrl}`,
+    );
+  }
+  return {
+    quoteCode: decodeURIComponent(match[1]),
+    exchangeCode: decodeURIComponent(match[2]),
+  };
+}
+
+export function parseGoogleSp500TrHtml(
   html: string,
   sourceUrl: string,
   fetchedAt: string,
+  symbol = "^SP500TR",
 ): MarketIndexDailyRecord {
   const ny = getNewYorkParts(fetchedAt);
-  const priceBoardSection =
-    html.match(
-      /<section id="mainIndexPriceBoard"[\s\S]{0,4000}<\/section>/,
-    )?.[0] ?? html;
-  const currentPriceMatch =
-    priceBoardSection.match(
-      /_CommonPriceBoard__price_[^"]*[\s\S]{0,200}?_StyledNumber__value_[^"]*">([0-9][0-9,]*\.[0-9]+)/,
-    ) ||
-    priceBoardSection.match(
-      /_StyledNumber__value_[^"]*">([0-9][0-9,]*\.[0-9]+)<\/span>/,
-    ) ||
-    priceBoardSection.match(/([0-9][0-9,]*\.[0-9]+)\s*USD/) ||
-    html.match(/([0-9][0-9,]*\.[0-9]+)\s*USD/);
-  const previousCloseMatch =
-    html.match(/前日終値[^0-9]{0,30}([0-9][0-9,]*\.[0-9]+)/) ||
-    priceBoardSection.match(/前日終値[^0-9]{0,30}([0-9][0-9,]*\.[0-9]+)/);
+  const { quoteCode, exchangeCode } = extractGoogleQuoteKey(sourceUrl);
+  const targetPattern = new RegExp(
+    String.raw`\[\["[^"]+",\["${escapeRegExp(quoteCode)}","${escapeRegExp(exchangeCode)}"\],"[^"]+",1,null,\[([^\]]+)\],null,([^,\]]+),null,null,null,\[([^\]]+)\],"([^"]+)",(-?\d+)`,
+    "s",
+  );
+  const targetMatch = html.match(targetPattern);
+  const currentSeries = targetMatch?.[1]?.split(",") ?? [];
+  const currentPriceRaw = currentSeries[0];
+  const previousCloseRaw = targetMatch?.[2];
   const usePreviousClose =
     ny.weekday === "Sat" || ny.weekday === "Sun" || ny.hour < 16;
-  const selectedMatch = usePreviousClose
-    ? previousCloseMatch
-    : currentPriceMatch;
+  const selectedPriceRaw = usePreviousClose
+    ? previousCloseRaw
+    : currentPriceRaw;
 
-  if (!selectedMatch) {
-    console.error("Yahoo S&P 500 parse failed", {
+  if (!selectedPriceRaw) {
+    console.error("Google Finance S&P 500 TR parse failed", {
       sourceUrl,
       usePreviousClose,
       titleSnippet:
         html.match(/<title[^>]*>[\s\S]{0,160}<\/title>/i)?.[0] ?? null,
-      sectionSnippet: priceBoardSection.slice(0, 800),
+      quoteSnippet:
+        html.match(
+          new RegExp(
+            String.raw`${escapeRegExp(quoteCode)}","${escapeRegExp(exchangeCode)}"[\s\S]{0,600}`,
+          ),
+        )?.[0] ?? null,
     });
-    throw new Error("Unable to parse Yahoo S&P 500 HTML");
+    throw new Error("Unable to parse Google Finance S&P 500 TR HTML");
   }
 
   return {
     tradeDate: usePreviousClose ? previousBusinessDate(ny.date) : ny.date,
-    symbol: "^GSPC",
-    closeValue: extractNumber(selectedMatch[1]),
+    symbol,
+    closeValue: extractNumber(selectedPriceRaw),
     currency: "USD",
     sourceName: SOURCE_NAME,
     sourceUrl,
@@ -96,8 +116,9 @@ export function parseYahooSp500Html(
   };
 }
 
-export async function fetchYahooSp500(
+export async function fetchGoogleSp500Tr(
   sourceUrl: string,
+  symbol = "^SP500TR",
 ): Promise<MarketIndexDailyRecord> {
   const response = await fetch(sourceUrl, {
     headers: {
@@ -106,8 +127,15 @@ export async function fetchYahooSp500(
     },
   });
   if (!response.ok) {
-    throw new Error(`Yahoo source request failed with ${response.status}`);
+    throw new Error(
+      `Google Finance source request failed with ${response.status}`,
+    );
   }
   const html = await response.text();
-  return parseYahooSp500Html(html, sourceUrl, new Date().toISOString());
+  return parseGoogleSp500TrHtml(
+    html,
+    sourceUrl,
+    new Date().toISOString(),
+    symbol,
+  );
 }

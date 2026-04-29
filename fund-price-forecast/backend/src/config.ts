@@ -6,6 +6,7 @@ import {
 export interface AppConfig {
   databaseUrl: string;
   sp500SourceUrl: string;
+  sp500Symbol: string;
   mufgFxUrl: string;
   fundSourceUrl: string;
   fundCode: string;
@@ -59,8 +60,9 @@ export async function getConfig(): Promise<AppConfig> {
     databaseUrl: await getDatabaseUrl(),
     sp500SourceUrl: getRequiredEnv(
       "SP500_SOURCE_URL",
-      "https://finance.yahoo.co.jp/quote/%5EGSPC",
+      "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
     ),
+    sp500Symbol: getRequiredEnv("SP500_SYMBOL", "^SP500TR"),
     mufgFxUrl: getRequiredEnv(
       "MUFG_FX_SOURCE_URL",
       "https://www.murc-kawasesouba.jp/fx/index.php",

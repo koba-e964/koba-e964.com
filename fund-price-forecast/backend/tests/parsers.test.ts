@@ -2,47 +2,51 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { parseEmaxisFundJson } from "../src/sources/emaxis.js";
+import { parseGoogleSp500TrHtml } from "../src/sources/google.js";
 import { parseMufgFxHtml } from "../src/sources/mufg.js";
-import { parseYahooSp500Html } from "../src/sources/yahoo.js";
 
-test("parseYahooSp500Html extracts trade date and price", () => {
+test("parseGoogleSp500TrHtml extracts trade date and price", () => {
   const html = `
     <html>
       <body>
-        <div>前日終値 5,180.11</div>
-        <div class="_CommonPriceBoard__price_1g7gt_64">
-          <span class="_StyledNumber__value_1arhg_9">5,220.44</span>
-        </div>
+        <script>
+          AF_initDataCallback({
+            key: 'ds:1',
+            data: [[[["/g/test",["SP500TR","INDEXSP"],"S\\u0026P 500 (TR)",1,null,[15931.22,-78.27051,-0.4889007,2,2,2],null,16009.49,null,null,null,[1777408688],"America/New_York",-14400]]]]
+          });
+        </script>
       </body>
     </html>
   `;
-  const record = parseYahooSp500Html(
+  const record = parseGoogleSp500TrHtml(
     html,
-    "https://finance.yahoo.co.jp/quote/%5EGSPC",
-    "2026-04-13T20:00:00Z",
+    "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
+    "2026-04-29T22:00:00Z",
   );
-  assert.equal(record.tradeDate, "2026-04-13");
-  assert.equal(record.closeValue, 5220.44);
+  assert.equal(record.tradeDate, "2026-04-29");
+  assert.equal(record.closeValue, 15931.22);
 });
 
-test("parseYahooSp500Html uses previous close during market hours", () => {
+test("parseGoogleSp500TrHtml uses previous close during market hours", () => {
   const html = `
     <html>
       <body>
-        <div>前日終値 5,180.11</div>
-        <div class="_CommonPriceBoard__price_1g7gt_64">
-          <span class="_StyledNumber__value_1arhg_9">5,220.44</span>
-        </div>
+        <script>
+          AF_initDataCallback({
+            key: 'ds:1',
+            data: [[[["/g/test",["SP500TR","INDEXSP"],"S\\u0026P 500 (TR)",1,null,[15931.22,-78.27051,-0.4889007,2,2,2],null,16009.49,null,null,null,[1777408688],"America/New_York",-14400]]]]
+          });
+        </script>
       </body>
     </html>
   `;
-  const record = parseYahooSp500Html(
+  const record = parseGoogleSp500TrHtml(
     html,
-    "https://finance.yahoo.co.jp/quote/%5EGSPC",
-    "2026-04-13T14:00:00Z",
+    "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
+    "2026-04-29T13:00:00Z",
   );
-  assert.equal(record.tradeDate, "2026-04-10");
-  assert.equal(record.closeValue, 5180.11);
+  assert.equal(record.tradeDate, "2026-04-28");
+  assert.equal(record.closeValue, 16009.49);
 });
 
 test("parseMufgFxHtml extracts TTS TTB TTM", () => {

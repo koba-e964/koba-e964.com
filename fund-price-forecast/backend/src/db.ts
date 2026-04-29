@@ -262,6 +262,7 @@ export async function upsertPrediction(
 export async function getPublicLatestPayload(
   databaseUrl: string,
   fundCode: string,
+  marketSymbol = "^SP500TR",
 ): Promise<PublicLatestPayload | null> {
   const sql = getSql(databaseUrl);
   const funds = await sql`
@@ -292,7 +293,7 @@ export async function getPublicLatestPayload(
   const [latestSp500] = await sql`
     select trade_date, close_value, source_name, fetched_at
     from market_index_daily
-    where symbol = '^GSPC'
+    where symbol = ${marketSymbol}
     order by trade_date desc
     limit 1
   `;
@@ -306,7 +307,7 @@ export async function getPublicLatestPayload(
   const [baseIndexForLatestPrediction] = await sql`
     select trade_date, close_value
     from market_index_daily
-    where symbol = '^GSPC'
+    where symbol = ${marketSymbol}
       and trade_date <= ${latestOfficialNav?.business_date ?? null}
     order by trade_date desc
     limit 1
@@ -346,7 +347,7 @@ export async function getPublicLatestPayload(
       left join lateral (
         select trade_date, close_value
         from market_index_daily
-        where symbol = '^GSPC'
+        where symbol = ${marketSymbol}
           and base_nav.business_date is not null
           and trade_date <= base_nav.business_date
         order by trade_date desc
@@ -364,7 +365,7 @@ export async function getPublicLatestPayload(
       left join lateral (
         select fetched_at
         from market_index_daily
-        where symbol = '^GSPC'
+        where symbol = ${marketSymbol}
           and trade_date = p.predicted_from_trade_date
           and close_value = p.used_index_value
           and fetched_at <= p.computed_at
@@ -383,13 +384,13 @@ export async function getPublicLatestPayload(
       ) fx on true
       where p.fund_code = ${fundCode}
       union all
-      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
+      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 配当込み指数'::text as note,
         null::date as prediction_business_date,
         null::double precision as base_nav_value, null::double precision as base_index_value, null::double precision as base_ttm_value, null::double precision as fee_adjustment_factor,
         null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
         null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from market_index_daily
-      where symbol = '^GSPC'
+      where symbol = ${marketSymbol}
       union all
       select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note,
         null::date as prediction_business_date,
@@ -499,7 +500,7 @@ export async function getPublicLatestPayload(
               },
       })),
     assumptions: [
-      "初版モデルは直近の公式基準価額をベースに指数比率と為替比率を掛けて近似する。",
+      "推定値は直近の公式基準価額をベースに配当込み指数比率と為替比率を掛けて近似する。",
       "信託報酬は一日先では無視し、長期予測では年率から日割り換算する。",
       "配当込み円換算ベースとの差は method_version を上げて改善できるようにしている。",
     ],

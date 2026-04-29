@@ -21,6 +21,7 @@ export interface FundPriceForecastStackProps extends cdk.StackProps {
   fundCode: string;
   fundSourceUrl: string;
   sp500SourceUrl: string;
+  sp500Symbol: string;
   mufgFxSourceUrl: string;
 }
 
@@ -46,6 +47,7 @@ export class FundPriceForecastStack extends cdk.Stack {
       FUND_CODE: props.fundCode,
       FUND_SOURCE_URL: props.fundSourceUrl,
       SP500_SOURCE_URL: props.sp500SourceUrl,
+      SP500_SYMBOL: props.sp500Symbol,
       MUFG_FX_SOURCE_URL: props.mufgFxSourceUrl,
       NODE_OPTIONS: "--enable-source-maps",
     };

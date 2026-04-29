@@ -9,7 +9,7 @@ import {
 import { buildPrediction } from "./domain/predict.js";
 import { fetchEmaxisFundNav } from "./sources/emaxis.js";
 import { fetchMufgFx } from "./sources/mufg.js";
-import { fetchYahooSp500 } from "./sources/yahoo.js";
+import { fetchGoogleSp500Tr } from "./sources/google.js";
 import type {
   FundRecord,
   FxDailyRecord,
@@ -19,7 +19,7 @@ import type {
 
 export async function runIngestMarketData(config: AppConfig): Promise<void> {
   const [sp500, fx] = await Promise.all([
-    fetchYahooSp500(config.sp500SourceUrl),
+    fetchGoogleSp500Tr(config.sp500SourceUrl, config.sp500Symbol),
     fetchMufgFx(config.mufgFxUrl),
   ]);
 
@@ -185,7 +185,7 @@ async function buildPredictionForBaseNav(
       fetched_at,
       raw_payload
     from market_index_daily
-    where symbol = '^GSPC'
+    where symbol = ${config.sp500Symbol}
       and trade_date <= ${baseNavRow.business_date}
     order by trade_date desc
     limit 1
@@ -201,7 +201,7 @@ async function buildPredictionForBaseNav(
       fetched_at,
       raw_payload
     from market_index_daily
-    where symbol = '^GSPC'
+    where symbol = ${config.sp500Symbol}
       and trade_date <= ${targetBusinessDate}
     order by trade_date desc
     limit 1

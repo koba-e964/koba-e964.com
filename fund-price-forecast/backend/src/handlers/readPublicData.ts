@@ -11,7 +11,11 @@ export async function handler(
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = await getConfig();
   const fundCode = event.pathParameters?.code || config.fundCode;
-  const payload = await getPublicLatestPayload(config.databaseUrl, fundCode);
+  const payload = await getPublicLatestPayload(
+    config.databaseUrl,
+    fundCode,
+    config.sp500Symbol,
+  );
 
   if (!payload) {
     return {
