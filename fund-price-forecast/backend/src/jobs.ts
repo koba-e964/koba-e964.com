@@ -9,7 +9,7 @@ import {
 import { buildPrediction } from "./domain/predict.js";
 import { fetchEmaxisFundNav } from "./sources/emaxis.js";
 import { fetchMufgFx } from "./sources/mufg.js";
-import { fetchGoogleSp500Tr } from "./sources/google.js";
+import { fetchGoogleSp500 } from "./sources/google.js";
 import type {
   FundRecord,
   FxDailyRecord,
@@ -18,7 +18,7 @@ import type {
 } from "./types.js";
 
 export async function runIngestMarketData(config: AppConfig): Promise<void> {
-  const sp500 = await fetchGoogleSp500Tr(
+  const sp500 = await fetchGoogleSp500(
     config.sp500SourceUrl,
     config.sp500Symbol,
   );

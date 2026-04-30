@@ -60,9 +60,9 @@ export async function getConfig(): Promise<AppConfig> {
     databaseUrl: await getDatabaseUrl(),
     sp500SourceUrl: getRequiredEnv(
       "SP500_SOURCE_URL",
-      "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
+      "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
     ),
-    sp500Symbol: getRequiredEnv("SP500_SYMBOL", "^SP500TR"),
+    sp500Symbol: getRequiredEnv("SP500_SYMBOL", "^GSPC"),
     mufgFxUrl: getRequiredEnv(
       "MUFG_FX_SOURCE_URL",
       "https://www.murc-kawasesouba.jp/fx/index.php",

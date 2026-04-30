@@ -2,51 +2,51 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { parseEmaxisFundJson } from "../src/sources/emaxis.js";
-import { parseGoogleSp500TrHtml } from "../src/sources/google.js";
+import { parseGoogleSp500Html } from "../src/sources/google.js";
 import { parseMufgFxHtml } from "../src/sources/mufg.js";
 
-test("parseGoogleSp500TrHtml extracts trade date and price", () => {
+test("parseGoogleSp500Html extracts trade date and price", () => {
   const html = `
     <html>
       <body>
         <script>
           AF_initDataCallback({
             key: 'ds:1',
-            data: [[[["/g/test",["SP500TR","INDEXSP"],"S\\u0026P 500 (TR)",1,null,[15931.22,-78.27051,-0.4889007,2,2,2],null,16009.49,null,null,null,[1777408688],"America/New_York",-14400]]]]
+            data: [[[["/g/test",[".INX","INDEXSP"],"S\\u0026P 500",1,null,[7138.8,-27.65,-0.3859,2,2,2],null,7165.08,null,null,null,[1777408688],"America/New_York",-14400]]]]
           });
         </script>
       </body>
     </html>
   `;
-  const record = parseGoogleSp500TrHtml(
+  const record = parseGoogleSp500Html(
     html,
-    "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
+    "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
     "2026-04-29T22:00:00Z",
   );
   assert.equal(record.tradeDate, "2026-04-29");
-  assert.equal(record.closeValue, 15931.22);
+  assert.equal(record.closeValue, 7138.8);
 });
 
-test("parseGoogleSp500TrHtml uses previous close during market hours", () => {
+test("parseGoogleSp500Html uses previous close during market hours", () => {
   const html = `
     <html>
       <body>
         <script>
           AF_initDataCallback({
             key: 'ds:1',
-            data: [[[["/g/test",["SP500TR","INDEXSP"],"S\\u0026P 500 (TR)",1,null,[15931.22,-78.27051,-0.4889007,2,2,2],null,16009.49,null,null,null,[1777408688],"America/New_York",-14400]]]]
+            data: [[[["/g/test",[".INX","INDEXSP"],"S\\u0026P 500",1,null,[7138.8,-27.65,-0.3859,2,2,2],null,7165.08,null,null,null,[1777408688],"America/New_York",-14400]]]]
           });
         </script>
       </body>
     </html>
   `;
-  const record = parseGoogleSp500TrHtml(
+  const record = parseGoogleSp500Html(
     html,
-    "https://www.google.com/finance/quote/SP500TR:INDEXSP?hl=en",
+    "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
     "2026-04-29T13:00:00Z",
   );
   assert.equal(record.tradeDate, "2026-04-28");
-  assert.equal(record.closeValue, 16009.49);
+  assert.equal(record.closeValue, 7165.08);
 });
 
 test("parseMufgFxHtml extracts TTS TTB TTM", () => {

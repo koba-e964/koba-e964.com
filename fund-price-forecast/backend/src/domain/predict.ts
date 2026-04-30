@@ -4,7 +4,7 @@ import type {
   PredictionStatus,
 } from "../types.js";
 
-const METHOD_VERSION = "v2-tr-index-fx-fee";
+const METHOD_VERSION = "v3-index-fx-fee";
 
 function daysBetween(baseDate: string, targetDate: string): number {
   const base = new Date(`${baseDate}T00:00:00Z`).getTime();

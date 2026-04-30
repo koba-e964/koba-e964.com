@@ -262,7 +262,7 @@ export async function upsertPrediction(
 export async function getPublicLatestPayload(
   databaseUrl: string,
   fundCode: string,
-  marketSymbol = "^SP500TR",
+  marketSymbol = "^GSPC",
 ): Promise<PublicLatestPayload | null> {
   const sql = getSql(databaseUrl);
   const funds = await sql`
@@ -276,14 +276,14 @@ export async function getPublicLatestPayload(
   }
 
   const [latestOfficialNav] = await sql`
-    select business_date, nav, fetched_at
+    select business_date::text as business_date, nav, fetched_at
     from fund_nav_daily
     where fund_code = ${fundCode}
     order by business_date desc
     limit 1
   `;
   const [latestPrediction] = await sql`
-    select business_date, status, predicted_nav, confidence_note,
+    select business_date::text as business_date, status, predicted_nav, confidence_note,
       used_index_value, used_ttm, fee_adjustment_factor
     from fund_predictions_daily
     where fund_code = ${fundCode}
@@ -291,21 +291,21 @@ export async function getPublicLatestPayload(
     limit 1
   `;
   const [latestSp500] = await sql`
-    select trade_date, close_value, source_name, fetched_at
+    select trade_date::text as trade_date, close_value, source_name, fetched_at
     from market_index_daily
     where symbol = ${marketSymbol}
     order by trade_date desc
     limit 1
   `;
   const [latestFx] = await sql`
-    select business_date, tts, ttb, ttm
+    select business_date::text as business_date, tts, ttb, ttm
     from fx_daily
     where currency_pair = 'USD/JPY'
     order by business_date desc
     limit 1
   `;
   const [baseIndexForLatestPrediction] = await sql`
-    select trade_date, close_value
+    select trade_date::text as trade_date, close_value
     from market_index_daily
     where symbol = ${marketSymbol}
       and trade_date <= ${latestOfficialNav?.business_date ?? null}
@@ -313,7 +313,7 @@ export async function getPublicLatestPayload(
     limit 1
   `;
   const [baseFxForLatestPrediction] = await sql`
-    select business_date, ttm
+    select business_date::text as business_date, ttm
     from fx_daily
     where currency_pair = 'USD/JPY'
       and business_date <= ${latestOfficialNav?.business_date ?? null}
@@ -323,18 +323,18 @@ export async function getPublicLatestPayload(
   const historyRows = (await sql`
     with combined as (
       select fetched_at as event_at, 'official'::text as kind, nav::double precision as value, 'JPY'::text as value_currency, '公式基準価額'::text as note,
-        null::date as prediction_business_date,
+        null::text as prediction_business_date,
         null::double precision as base_nav_value, null::double precision as base_index_value, null::double precision as base_ttm_value, null::double precision as fee_adjustment_factor,
-        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
-        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
+        null::text as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::text as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fund_nav_daily
       where fund_code = ${fundCode}
       union all
       select p.computed_at as event_at, p.status::text as kind, p.predicted_nav::double precision as value, 'JPY'::text as value_currency, p.confidence_note::text as note,
-        p.business_date as prediction_business_date,
+        p.business_date::text as prediction_business_date,
         base_nav.nav::double precision as base_nav_value, base_idx.close_value::double precision as base_index_value, base_fx.ttm::double precision as base_ttm_value, p.fee_adjustment_factor::double precision as fee_adjustment_factor,
-        p.predicted_from_trade_date as index_date, p.used_index_value::double precision as index_value, idx.fetched_at as index_event_at,
-        p.predicted_from_fx_date as fx_date, p.used_ttm::double precision as fx_value, fx.fetched_at as fx_event_at
+        p.predicted_from_trade_date::text as index_date, p.used_index_value::double precision as index_value, idx.fetched_at as index_event_at,
+        p.predicted_from_fx_date::text as fx_date, p.used_ttm::double precision as fx_value, fx.fetched_at as fx_event_at
       from fund_predictions_daily p
       left join lateral (
         select business_date, nav
@@ -384,19 +384,19 @@ export async function getPublicLatestPayload(
       ) fx on true
       where p.fund_code = ${fundCode}
       union all
-      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 配当込み指数'::text as note,
-        null::date as prediction_business_date,
+      select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
+        null::text as prediction_business_date,
         null::double precision as base_nav_value, null::double precision as base_index_value, null::double precision as base_ttm_value, null::double precision as fee_adjustment_factor,
-        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
-        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
+        null::text as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::text as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from market_index_daily
       where symbol = ${marketSymbol}
       union all
       select fetched_at as event_at, 'fx_ttm'::text as kind, ttm::double precision as value, 'FX'::text as value_currency, '為替TTM'::text as note,
-        null::date as prediction_business_date,
+        null::text as prediction_business_date,
         null::double precision as base_nav_value, null::double precision as base_index_value, null::double precision as base_ttm_value, null::double precision as fee_adjustment_factor,
-        null::date as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
-        null::date as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
+        null::text as index_date, null::double precision as index_value, null::timestamptz as index_event_at,
+        null::text as fx_date, null::double precision as fx_value, null::timestamptz as fx_event_at
       from fx_daily
       where currency_pair = 'USD/JPY'
     )
@@ -500,7 +500,7 @@ export async function getPublicLatestPayload(
               },
       })),
     assumptions: [
-      "推定値は直近の公式基準価額をベースに配当込み指数比率と為替比率を掛けて近似する。",
+      "推定値は直近の公式基準価額をベースにS&P 500指数比率と為替比率を掛けて近似する。",
       "信託報酬は一日先では無視し、長期予測では年率から日割り換算する。",
       "配当込み円換算ベースとの差は method_version を上げて改善できるようにしている。",
     ],

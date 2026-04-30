@@ -66,11 +66,11 @@ function extractGoogleQuoteKey(sourceUrl: string): {
   };
 }
 
-export function parseGoogleSp500TrHtml(
+export function parseGoogleSp500Html(
   html: string,
   sourceUrl: string,
   fetchedAt: string,
-  symbol = "^SP500TR",
+  symbol = "^GSPC",
 ): MarketIndexDailyRecord {
   const ny = getNewYorkParts(fetchedAt);
   const { quoteCode, exchangeCode } = extractGoogleQuoteKey(sourceUrl);
@@ -89,7 +89,7 @@ export function parseGoogleSp500TrHtml(
     : currentPriceRaw;
 
   if (!selectedPriceRaw) {
-    console.error("Google Finance S&P 500 TR parse failed", {
+    console.error("Google Finance S&P 500 parse failed", {
       sourceUrl,
       usePreviousClose,
       titleSnippet:
@@ -101,7 +101,7 @@ export function parseGoogleSp500TrHtml(
           ),
         )?.[0] ?? null,
     });
-    throw new Error("Unable to parse Google Finance S&P 500 TR HTML");
+    throw new Error("Unable to parse Google Finance S&P 500 HTML");
   }
 
   return {
@@ -116,9 +116,9 @@ export function parseGoogleSp500TrHtml(
   };
 }
 
-export async function fetchGoogleSp500Tr(
+export async function fetchGoogleSp500(
   sourceUrl: string,
-  symbol = "^SP500TR",
+  symbol = "^GSPC",
 ): Promise<MarketIndexDailyRecord> {
   const response = await fetch(sourceUrl, {
     headers: {
@@ -132,7 +132,7 @@ export async function fetchGoogleSp500Tr(
     );
   }
   const html = await response.text();
-  return parseGoogleSp500TrHtml(
+  return parseGoogleSp500Html(
     html,
     sourceUrl,
     new Date().toISOString(),
