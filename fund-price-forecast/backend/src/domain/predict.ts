@@ -4,7 +4,7 @@ import type {
   PredictionStatus,
 } from "../types.js";
 
-const METHOD_VERSION = "v3-index-fx-fee";
+export const CURRENT_METHOD_VERSION = "v3-index-fx-fee";
 
 function daysBetween(baseDate: string, targetDate: string): number {
   const base = new Date(`${baseDate}T00:00:00Z`).getTime();
@@ -89,7 +89,7 @@ export function buildPrediction(
     usedIndexValue: input.targetIndex?.closeValue ?? null,
     usedTtm: input.targetFx?.ttm ?? null,
     feeAdjustmentFactor,
-    methodVersion: METHOD_VERSION,
+    methodVersion: CURRENT_METHOD_VERSION,
     confidenceNote: notes.join(" / "),
     computedAt,
   };

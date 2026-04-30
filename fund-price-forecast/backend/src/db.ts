@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 
+import { CURRENT_METHOD_VERSION } from "./domain/predict.js";
 import type {
   FundNavDailyRecord,
   FxDailyRecord,
@@ -287,6 +288,7 @@ export async function getPublicLatestPayload(
       used_index_value, used_ttm, fee_adjustment_factor
     from fund_predictions_daily
     where fund_code = ${fundCode}
+      and method_version = ${CURRENT_METHOD_VERSION}
     order by business_date desc, computed_at desc
     limit 1
   `;
@@ -383,6 +385,7 @@ export async function getPublicLatestPayload(
         limit 1
       ) fx on true
       where p.fund_code = ${fundCode}
+        and p.method_version = ${CURRENT_METHOD_VERSION}
       union all
       select fetched_at as event_at, 'market_index'::text as kind, close_value::double precision as value, 'USD'::text as value_currency, 'S&P 500 終値'::text as note,
         null::text as prediction_business_date,
