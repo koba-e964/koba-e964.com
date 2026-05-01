@@ -19,7 +19,7 @@ new FundPriceForecastStack(app, "FundPriceForecastStack", {
     "https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266",
   sp500SourceUrl:
     app.node.tryGetContext("sp500SourceUrl") ??
-    "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
+    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d&includePrePost=false&events=div%2Csplits",
   sp500Symbol: app.node.tryGetContext("sp500Symbol") ?? "^GSPC",
   mufgFxSourceUrl:
     app.node.tryGetContext("mufgFxSourceUrl") ??

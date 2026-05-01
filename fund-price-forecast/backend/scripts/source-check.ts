@@ -1,12 +1,13 @@
 import { fetchEmaxisFundNav } from "../src/sources/emaxis.js";
 import { fetchMufgFx } from "../src/sources/mufg.js";
-import { fetchGoogleSp500 } from "../src/sources/google.js";
+import { fetchYahooSp500 } from "../src/sources/yahoo.js";
 
 const DEFAULTS = {
   fundCode: "253266",
   fundUrl: "https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266",
   fxUrl: "https://www.murc-kawasesouba.jp/fx/index.php",
-  sp500Url: "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
+  sp500Url:
+    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d&includePrePost=false&events=div%2Csplits",
   sp500Symbol: "^GSPC",
 } as const;
 
@@ -58,7 +59,7 @@ async function main(): Promise<void> {
     case "sp500": {
       const sourceUrl = process.env.SP500_SOURCE_URL ?? DEFAULTS.sp500Url;
       const symbol = process.env.SP500_SYMBOL ?? DEFAULTS.sp500Symbol;
-      const record = await fetchGoogleSp500(sourceUrl, symbol);
+      const record = await fetchYahooSp500(sourceUrl, symbol);
       console.log(JSON.stringify(record, null, 2));
       return;
     }

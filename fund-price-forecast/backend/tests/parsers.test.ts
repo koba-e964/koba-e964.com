@@ -2,51 +2,61 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { parseEmaxisFundJson } from "../src/sources/emaxis.js";
-import { parseGoogleSp500Html } from "../src/sources/google.js";
+import { parseYahooSp500ChartJson } from "../src/sources/yahoo.js";
 import { parseMufgFxHtml } from "../src/sources/mufg.js";
 
-test("parseGoogleSp500Html extracts trade date and price", () => {
-  const html = `
-    <html>
-      <body>
-        <script>
-          AF_initDataCallback({
-            key: 'ds:1',
-            data: [[[["/g/test",[".INX","INDEXSP"],"S\\u0026P 500",1,null,[7138.8,-27.65,-0.3859,2,2,2],null,7165.08,null,null,null,[1777408688],"America/New_York",-14400]]]]
-          });
-        </script>
-      </body>
-    </html>
-  `;
-  const record = parseGoogleSp500Html(
-    html,
-    "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
-    "2026-04-29T22:00:00Z",
+test("parseYahooSp500ChartJson extracts the latest completed close", () => {
+  const payload = JSON.stringify({
+    chart: {
+      result: [
+        {
+          timestamp: [1777516800, 1777603200],
+          indicators: {
+            quote: [
+              {
+                close: [7135.95, 7209.01],
+              },
+            ],
+          },
+        },
+      ],
+      error: null,
+    },
+  });
+  const record = parseYahooSp500ChartJson(
+    payload,
+    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d",
+    "2026-05-01T04:34:23Z",
   );
-  assert.equal(record.tradeDate, "2026-04-29");
-  assert.equal(record.closeValue, 7138.8);
+  assert.equal(record.tradeDate, "2026-04-30");
+  assert.equal(record.closeValue, 7209.01);
 });
 
-test("parseGoogleSp500Html uses previous close during market hours", () => {
-  const html = `
-    <html>
-      <body>
-        <script>
-          AF_initDataCallback({
-            key: 'ds:1',
-            data: [[[["/g/test",[".INX","INDEXSP"],"S\\u0026P 500",1,null,[7138.8,-27.65,-0.3859,2,2,2],null,7165.08,null,null,null,[1777408688],"America/New_York",-14400]]]]
-          });
-        </script>
-      </body>
-    </html>
-  `;
-  const record = parseGoogleSp500Html(
-    html,
-    "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
-    "2026-04-29T13:00:00Z",
+test("parseYahooSp500ChartJson ignores the same-day partial candle before close", () => {
+  const payload = JSON.stringify({
+    chart: {
+      result: [
+        {
+          timestamp: [1777603200, 1777689600],
+          indicators: {
+            quote: [
+              {
+                close: [7209.01, 7198.5],
+              },
+            ],
+          },
+        },
+      ],
+      error: null,
+    },
+  });
+  const record = parseYahooSp500ChartJson(
+    payload,
+    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d",
+    "2026-05-01T15:00:00Z",
   );
-  assert.equal(record.tradeDate, "2026-04-28");
-  assert.equal(record.closeValue, 7165.08);
+  assert.equal(record.tradeDate, "2026-04-30");
+  assert.equal(record.closeValue, 7209.01);
 });
 
 test("parseMufgFxHtml extracts TTS TTB TTM", () => {

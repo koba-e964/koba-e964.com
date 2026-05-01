@@ -104,7 +104,7 @@ predicted_nav = base_nav * index_ratio * fx_ratio * fee_factor
 ### データ源メモ
 
 - 為替は MUFG 本体ページではなく、同じ公表値を載せる MURC の `https://www.murc-kawasesouba.jp/fx/index.php` をデフォルト取得先にしています。
-- 株価指数は Google Finance の `https://www.google.com/finance/quote/.INX:INDEXSP?hl=en` をデフォルト取得先にしています。
+- 株価指数は Yahoo Finance chart API の `https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d&includePrePost=false&events=div%2Csplits` をデフォルト取得先にしています。
 - 公式基準価額は HTML ではなく、MUFG AM の JSON endpoint `https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266` をデフォルト取得先にしています。
 - API は `fund_nav_daily` / `fund_predictions_daily` / `market_index_daily` / `fx_daily` が揃うまで `503 data_not_ready` を返します。
 - フロントは `503 data_not_ready` を受けたとき、mock fallback ではなく「まだ ingest されていない」専用エラーを表示します。
@@ -172,7 +172,7 @@ npm run source:check -- sp500
 ```sh
 FUND_SOURCE_URL='https://www.am.mufg.jp/mukamapi/fund_details/?fund_cd=253266' npm run source:check -- fund
 MUFG_FX_SOURCE_URL='https://www.murc-kawasesouba.jp/fx/index.php' npm run source:check -- fx
-SP500_SOURCE_URL='https://www.google.com/finance/quote/.INX:INDEXSP?hl=en' SP500_SYMBOL='^GSPC' npm run source:check -- sp500
+SP500_SOURCE_URL='https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=10d&includePrePost=false&events=div%2Csplits' SP500_SYMBOL='^GSPC' npm run source:check -- sp500
 ```
 
 `fund` は `FUND_CODE` も上書きできます。
