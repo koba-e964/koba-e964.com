@@ -310,7 +310,7 @@ export async function getPublicLatestPayload(
     select trade_date::text as trade_date, close_value
     from market_index_daily
     where symbol = ${marketSymbol}
-      and trade_date <= ${latestOfficialNav?.business_date ?? null}
+      and trade_date < ${latestOfficialNav?.business_date ?? null}
     order by trade_date desc
     limit 1
   `;
@@ -318,8 +318,7 @@ export async function getPublicLatestPayload(
     select business_date::text as business_date, ttm
     from fx_daily
     where currency_pair = 'USD/JPY'
-      and business_date <= ${latestOfficialNav?.business_date ?? null}
-    order by business_date desc
+      and business_date = ${latestOfficialNav?.business_date ?? null}
     limit 1
   `;
   const historyRows = (await sql`
@@ -351,7 +350,7 @@ export async function getPublicLatestPayload(
         from market_index_daily
         where symbol = ${marketSymbol}
           and base_nav.business_date is not null
-          and trade_date <= base_nav.business_date
+          and trade_date < base_nav.business_date
         order by trade_date desc
         limit 1
       ) base_idx on true
@@ -360,8 +359,7 @@ export async function getPublicLatestPayload(
         from fx_daily
         where currency_pair = 'USD/JPY'
           and base_nav.business_date is not null
-          and business_date <= base_nav.business_date
-        order by business_date desc
+          and business_date = base_nav.business_date
         limit 1
       ) base_fx on true
       left join lateral (

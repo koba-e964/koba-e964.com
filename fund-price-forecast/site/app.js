@@ -103,6 +103,9 @@ function formatPythonNumber(value, digits) {
 }
 
 function formatPredictionFormula(latestOfficialNav, latestPrediction) {
+  if (!isPredictionReady(latestPrediction.status)) {
+    return "未定";
+  }
   const formula = latestPrediction?.formula;
   if (!formula) {
     return "式を表示できません";
@@ -157,6 +160,10 @@ function formatPredictionFormulaFromFormula(formula) {
   return parts.join(" * ");
 }
 
+function isPredictionReady(status) {
+  return status === "estimated_complete_inputs" || status === "estimated_long_horizon";
+}
+
 function formatDateTime(value) {
   if (!value) {
     return "時刻未取得";
@@ -192,19 +199,19 @@ function formatHistoryNote(row) {
         `S&P 500 反映済み (${formatNumber(row.indexValue, 2)}, ${row.indexEventAt ? formatDateTime(row.indexEventAt) : formatDateOnly(row.indexDate)})`
       );
     } else {
-      noteParts.push("S&P 500 は未反映");
+      noteParts.push("S&P 500 は未定");
     }
     if (typeof row.fxValue === "number" && row.fxDate) {
       noteParts.push(
         `TTM 反映済み (${formatNumber(row.fxValue, 3)}, ${row.fxEventAt ? formatDateTime(row.fxEventAt) : formatDateOnly(row.fxDate)})`
       );
     } else {
-      noteParts.push("TTM は未反映");
+      noteParts.push("TTM は未定");
     }
     if (row.kind === "estimated_long_horizon") {
       noteParts.push("長期補正あり");
     }
-    if (row.formula) {
+    if (row.formula && isPredictionReady(row.kind)) {
       noteParts.push(`式: ${formatPredictionFormulaFromFormula(row.formula)}`);
     }
     return noteParts.join(" / ");
@@ -223,8 +230,8 @@ function renderApp(payload, sourceLabel) {
   const statusMap = {
     official: "公式値",
     estimated_complete_inputs: "推定値",
-    estimated_missing_index: "推定値",
-    estimated_missing_fx: "推定値",
+    estimated_missing_index: "未定",
+    estimated_missing_fx: "未定",
     estimated_long_horizon: "長期推定",
     market_index: "S&P 500",
     fx_ttm: "為替TTM",
@@ -245,7 +252,13 @@ function renderApp(payload, sourceLabel) {
     "official-date",
     `${formatDateOnly(latestOfficialNav.businessDate)} 公表 / 取得 ${formatDateTime(latestOfficialNav.fetchedAt)}`
   );
-  setField(fragment, "predicted-nav", formatCurrency(latestPrediction.predictedNav, "JPY"));
+  setField(
+    fragment,
+    "predicted-nav",
+    isPredictionReady(latestPrediction.status)
+      ? formatCurrency(latestPrediction.predictedNav, "JPY")
+      : "未定"
+  );
   setField(
     fragment,
     "prediction-note",
@@ -276,7 +289,7 @@ function renderApp(payload, sourceLabel) {
     tr.innerHTML = `
       <td>${formatDateTime(row.eventAt)}</td>
       <td>${statusMap[row.kind] || row.kind}</td>
-      <td>${formatHistoryValue(row.value, row.valueCurrency)}</td>
+      <td>${isPredictionReady(row.kind) || !String(row.kind).startsWith("estimated_") ? formatHistoryValue(row.value, row.valueCurrency) : "未定"}</td>
       <td>${formatHistoryNote(row)}</td>
     `;
     historyBody.appendChild(tr);

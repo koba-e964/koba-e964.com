@@ -202,7 +202,7 @@ async function buildPredictionForBaseNav(
       raw_payload
     from market_index_daily
     where symbol = ${config.sp500Symbol}
-      and trade_date <= ${baseNavRow.business_date}
+      and trade_date < ${baseNavRow.business_date}
     order by trade_date desc
     limit 1
   `;
@@ -218,7 +218,7 @@ async function buildPredictionForBaseNav(
       raw_payload
     from market_index_daily
     where symbol = ${config.sp500Symbol}
-      and trade_date <= ${targetBusinessDate}
+      and trade_date < ${targetBusinessDate}
     order by trade_date desc
     limit 1
   `;
@@ -235,8 +235,7 @@ async function buildPredictionForBaseNav(
       raw_payload
     from fx_daily
     where currency_pair = 'USD/JPY'
-      and business_date <= ${baseNavRow.business_date}
-    order by business_date desc
+      and business_date = ${baseNavRow.business_date}
     limit 1
   `;
   const [targetFx] = await sql`
@@ -252,8 +251,7 @@ async function buildPredictionForBaseNav(
       raw_payload
     from fx_daily
     where currency_pair = 'USD/JPY'
-      and business_date <= ${targetBusinessDate}
-    order by business_date desc
+      and business_date = ${targetBusinessDate}
     limit 1
   `;
 

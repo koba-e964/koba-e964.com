@@ -68,12 +68,12 @@ export function buildPrediction(
   if (hasIndex) {
     notes.push("S&P 500 反映済み");
   } else {
-    notes.push("S&P 500 は未反映");
+    notes.push("S&P 500 は未定");
   }
   if (hasFx) {
     notes.push("TTM 反映済み");
   } else {
-    notes.push("TTM は未反映");
+    notes.push("TTM は未定");
   }
   if (daySpan > 1) {
     notes.push("長期補正として信託報酬を日割りで減算");
