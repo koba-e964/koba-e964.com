@@ -22,6 +22,14 @@ export async function runIngestMarketData(config: AppConfig): Promise<void> {
     config.sp500SourceUrl,
     config.sp500Symbol,
   );
+  console.info("Fetched market index", {
+    symbol: sp500.symbol,
+    tradeDate: sp500.tradeDate,
+    closeValue: sp500.closeValue,
+    sourceName: sp500.sourceName,
+    sourceUrl: sp500.sourceUrl,
+    fetchedAt: sp500.fetchedAt,
+  });
   let fx: Awaited<ReturnType<typeof fetchMufgFx>> | null = null;
 
   try {
