@@ -103,34 +103,11 @@ function formatPythonNumber(value, digits) {
 }
 
 function formatPredictionFormula(latestOfficialNav, latestPrediction) {
-  if (!isPredictionReady(latestPrediction.status)) {
-    return "未定";
-  }
   const formula = latestPrediction?.formula;
   if (!formula) {
     return "式を表示できません";
   }
-
-  const baseNav = formatPythonNumber(formula.baseNav, 0);
-  const indexPart =
-    typeof formula.baseIndexValue === "number" &&
-    typeof formula.targetIndexValue === "number"
-      ? `(${formatPythonNumber(formula.targetIndexValue, 2)} / ${formatPythonNumber(formula.baseIndexValue, 2)})`
-      : "1";
-  const fxPart =
-    typeof formula.baseTtm === "number" && typeof formula.targetTtm === "number"
-      ? `(${formatPythonNumber(formula.targetTtm, 3)} / ${formatPythonNumber(formula.baseTtm, 3)})`
-      : "1";
-
-  const parts = [baseNav, indexPart, fxPart];
-  if (
-    typeof formula.feeAdjustmentFactor === "number" &&
-    Math.abs(formula.feeAdjustmentFactor - 1) > 1e-9
-  ) {
-    parts.push(formatPythonNumber(formula.feeAdjustmentFactor, 9));
-  }
-
-  return parts.join(" * ");
+  return formatPredictionFormulaFromFormula(formula);
 }
 
 function formatPredictionFormulaFromFormula(formula) {
@@ -139,17 +116,22 @@ function formatPredictionFormulaFromFormula(formula) {
   }
 
   const baseNav = formatPythonNumber(formula.baseNav, 0);
-  const indexPart =
+  const parts = [baseNav];
+  if (
     typeof formula.baseIndexValue === "number" &&
     typeof formula.targetIndexValue === "number"
-      ? `(${formatPythonNumber(formula.targetIndexValue, 2)} / ${formatPythonNumber(formula.baseIndexValue, 2)})`
-      : "1";
-  const fxPart =
+  ) {
+    parts.push(
+      `(${formatPythonNumber(formula.targetIndexValue, 2)} / ${formatPythonNumber(formula.baseIndexValue, 2)})`
+    );
+  }
+  if (
     typeof formula.baseTtm === "number" && typeof formula.targetTtm === "number"
-      ? `(${formatPythonNumber(formula.targetTtm, 3)} / ${formatPythonNumber(formula.baseTtm, 3)})`
-      : "1";
-
-  const parts = [baseNav, indexPart, fxPart];
+  ) {
+    parts.push(
+      `(${formatPythonNumber(formula.targetTtm, 3)} / ${formatPythonNumber(formula.baseTtm, 3)})`
+    );
+  }
   if (
     typeof formula.feeAdjustmentFactor === "number" &&
     Math.abs(formula.feeAdjustmentFactor - 1) > 1e-9
@@ -162,6 +144,15 @@ function formatPredictionFormulaFromFormula(formula) {
 
 function isPredictionReady(status) {
   return status === "estimated_complete_inputs" || status === "estimated_long_horizon";
+}
+
+function isPredictionStatus(status) {
+  return (
+    status === "estimated_complete_inputs" ||
+    status === "estimated_missing_index" ||
+    status === "estimated_missing_fx" ||
+    status === "estimated_long_horizon"
+  );
 }
 
 function formatDateTime(value) {
@@ -211,7 +202,7 @@ function formatHistoryNote(row) {
     if (row.kind === "estimated_long_horizon") {
       noteParts.push("長期補正あり");
     }
-    if (row.formula && isPredictionReady(row.kind)) {
+    if (row.formula) {
       noteParts.push(`式: ${formatPredictionFormulaFromFormula(row.formula)}`);
     }
     return noteParts.join(" / ");
@@ -230,8 +221,8 @@ function renderApp(payload, sourceLabel) {
   const statusMap = {
     official: "公式値",
     estimated_complete_inputs: "推定値",
-    estimated_missing_index: "未定",
-    estimated_missing_fx: "未定",
+    estimated_missing_index: "暫定推定",
+    estimated_missing_fx: "暫定推定",
     estimated_long_horizon: "長期推定",
     market_index: "S&P 500",
     fx_ttm: "為替TTM",
@@ -252,13 +243,7 @@ function renderApp(payload, sourceLabel) {
     "official-date",
     `${formatDateOnly(latestOfficialNav.businessDate)} 公表 / 取得 ${formatDateTime(latestOfficialNav.fetchedAt)}`
   );
-  setField(
-    fragment,
-    "predicted-nav",
-    isPredictionReady(latestPrediction.status)
-      ? formatCurrency(latestPrediction.predictedNav, "JPY")
-      : "未定"
-  );
+  setField(fragment, "predicted-nav", formatCurrency(latestPrediction.predictedNav, "JPY"));
   setField(
     fragment,
     "prediction-note",
@@ -289,7 +274,7 @@ function renderApp(payload, sourceLabel) {
     tr.innerHTML = `
       <td>${formatDateTime(row.eventAt)}</td>
       <td>${statusMap[row.kind] || row.kind}</td>
-      <td>${isPredictionReady(row.kind) || !String(row.kind).startsWith("estimated_") ? formatHistoryValue(row.value, row.valueCurrency) : "未定"}</td>
+      <td>${isPredictionStatus(row.kind) || !String(row.kind).startsWith("estimated_") ? formatHistoryValue(row.value, row.valueCurrency) : "未定"}</td>
       <td>${formatHistoryNote(row)}</td>
     `;
     historyBody.appendChild(tr);

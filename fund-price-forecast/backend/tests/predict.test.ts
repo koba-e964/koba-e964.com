@@ -85,6 +85,18 @@ test("buildPrediction marks missing index separately", () => {
   });
   assert.equal(prediction.status, "estimated_missing_index");
   assert.equal(prediction.usedIndexValue, null);
+  assert.equal(prediction.predictedNav, 35756.6);
+});
+
+test("buildPrediction keeps index-only provisional estimate when fx is missing", () => {
+  const prediction = buildPrediction({
+    ...baseInput,
+    baseFx: null,
+    targetFx: null,
+  });
+  assert.equal(prediction.status, "estimated_missing_fx");
+  assert.equal(prediction.usedTtm, null);
+  assert.equal(prediction.predictedNav, 36220.2);
 });
 
 test("buildPrediction applies fee factor on longer horizons", () => {
