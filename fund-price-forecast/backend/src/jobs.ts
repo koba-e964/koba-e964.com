@@ -125,6 +125,14 @@ export async function runRecomputeAllPredictions(
 
   let recomputed = 0;
   for (const baseNav of baseNavRows) {
+    const [nextIndex] = await sql`
+      select trade_date::text as trade_date
+      from market_index_daily
+      where symbol = ${config.sp500Symbol}
+        and trade_date >= ${baseNav.business_date}
+      order by trade_date asc
+      limit 1
+    `;
     const [nextFx] = await sql`
       select business_date::text as business_date
       from fx_daily
@@ -138,6 +146,7 @@ export async function runRecomputeAllPredictions(
       baseNav,
       resolveTargetBusinessDate(
         normalizeDateOnly(baseNav.business_date),
+        nextIndex ? normalizeDateOnly(nextIndex.trade_date) : null,
         nextFx ? normalizeDateOnly(nextFx.business_date) : null,
       ),
     );
