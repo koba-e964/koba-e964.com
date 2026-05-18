@@ -86,11 +86,19 @@ export async function runRecomputePredictions(
     order by business_date desc
     limit 1
   `;
+  const [latestIndex] = await sql`
+    select trade_date::text as trade_date
+    from market_index_daily
+    where symbol = ${config.sp500Symbol}
+    order by trade_date desc
+    limit 1
+  `;
   const prediction = await buildPredictionForBaseNav(
     config,
     baseNav,
     resolveTargetBusinessDate(
       normalizeDateOnly(baseNav.business_date),
+      latestIndex ? normalizeDateOnly(latestIndex.trade_date) : null,
       latestFx ? normalizeDateOnly(latestFx.business_date) : null,
     ),
   );
@@ -148,13 +156,17 @@ function nextBusinessDate(yyyyMmDd: string): string {
 
 export function resolveTargetBusinessDate(
   baseNavBusinessDate: string,
+  latestIndexTradeDate: string | null,
   latestFxBusinessDate: string | null,
 ): string {
-  if (latestFxBusinessDate && latestFxBusinessDate > baseNavBusinessDate) {
-    return latestFxBusinessDate;
+  const candidates = [nextBusinessDate(baseNavBusinessDate)];
+  if (latestIndexTradeDate && latestIndexTradeDate >= baseNavBusinessDate) {
+    candidates.push(nextBusinessDate(latestIndexTradeDate));
   }
-
-  return nextBusinessDate(baseNavBusinessDate);
+  if (latestFxBusinessDate && latestFxBusinessDate > baseNavBusinessDate) {
+    candidates.push(latestFxBusinessDate);
+  }
+  return candidates.sort().at(-1)!;
 }
 
 function normalizeDateOnly(value: unknown): string {
