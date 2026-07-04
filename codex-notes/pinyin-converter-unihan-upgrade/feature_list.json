@@ -1,0 +1,46 @@
+{
+  "features": [
+    {
+      "id": "split-data-file",
+      "description": "Move runtime pinyin data out of pages/pinyin/index.html into pages/pinyin/pinyin-data.js loaded by the page.",
+      "validation": "rg \"pinyin-data.js\" pages/pinyin/index.html && test -f pages/pinyin/pinyin-data.js",
+      "passes": true
+    },
+    {
+      "id": "generate-unihan-data",
+      "description": "Add a generator that builds pinyin-data.js from Unicode Unihan readings and variants.",
+      "validation": "node --check pages/pinyin/build-pinyin-data.mjs",
+      "passes": true
+    },
+    {
+      "id": "support-multiple-readings",
+      "description": "Update runtime conversion to support primary and secondary pinyin readings per character.",
+      "validation": "node scripts or DOM-stub check confirms 長/长 include secondary readings while primary output remains deterministic",
+      "passes": true
+    },
+    {
+      "id": "render-secondary-muted",
+      "description": "Render secondary pinyin readings in a muted style in the pinyin table row.",
+      "validation": "rg \"secondary|muted\" pages/pinyin/index.html",
+      "passes": true
+    },
+    {
+      "id": "include-alternatives-readonly",
+      "description": "Show secondary readings in the pinyin-only readonly textarea using primary (secondary) notation.",
+      "validation": "DOM-stub check confirms 長 produces zhang3 (chang2) or equivalent approved notation in readonly textarea",
+      "passes": true
+    },
+    {
+      "id": "add-unicode-attribution",
+      "description": "Add visible Unicode Unihan attribution/license note and app-specific regeneration docs.",
+      "validation": "rg \"Unicode|Unihan\" pages/pinyin/index.html pages/pinyin/README.md",
+      "passes": true
+    },
+    {
+      "id": "validate-upgrade",
+      "description": "Run syntax, runtime smoke, and repository validation after the data upgrade.",
+      "validation": "pre-commit run --all-files",
+      "passes": true
+    }
+  ]
+}
