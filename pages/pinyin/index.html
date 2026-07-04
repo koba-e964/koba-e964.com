@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>拼音 converter | koba-e964.com</title>
+        <title>リアルタイム拼音変換(簡易版) | koba-e964.com</title>
         <meta
             name="description"
             content="漢字を入力すると、ブラウザ内だけで拼音と簡体字・繁體字の対応表をリアルタイム表示します。"
@@ -306,7 +306,7 @@
             </div>
 
             <header>
-                <h1>拼音 converter</h1>
+                <h1>リアルタイム拼音変換(簡易版)</h1>
                 <p class="subtitle">
                     漢字を入力すると、拼音、簡体字、繁體字の対応をブラウザ内でリアルタイムに表示します。
                     変換は文字単位です。
@@ -333,7 +333,7 @@
                 <section class="panel">
                     <div class="panel-header">
                         <h2 class="panel-title">出力</h2>
-                        <span class="status" id="statusText">ready</span>
+                        <span class="status" id="statusText">準備完了</span>
                     </div>
                     <div class="panel-body result-stack">
                         <section
@@ -347,7 +347,7 @@
                                     type="button"
                                     data-copy-target="markedOutput"
                                 >
-                                    Copy
+                                    コピー
                                 </button>
                             </div>
                             <p class="result-text" id="markedOutput"></p>
@@ -364,7 +364,7 @@
                                     type="button"
                                     data-copy-target="numericOutput"
                                 >
-                                    Copy
+                                    コピー
                                 </button>
                             </div>
                             <p class="result-text" id="numericOutput"></p>
@@ -380,25 +380,29 @@
                 <div class="panel-body">
                     <div class="table-wrap" id="tableWrap">
                         <div class="empty">
-                            入力すると、简体字・繁體字・pinyin
+                            入力すると、简体字・繁體字・拼音
                             を列ごとに表示します。
                         </div>
                     </div>
                     <p class="note">
-                        Unicode Unihan Database 17.0.0
+                        Unicode Unihan データベース 17.0.0
                         から生成した文字単位の読みを表示します。
-                        多音字や語単位の読み分けは行いません。 Unicode data
-                        terms: https://www.unicode.org/terms_of_use.html
+                        まだ簡易版なので、イレギュラーなケースでは期待する読みが一番に出ないことがあります。
+                        多音字や語単位の読み分けは行いません。
+                        Unicode データの利用条件:
+                        <a href="https://www.unicode.org/terms_of_use.html"
+                            >https://www.unicode.org/terms_of_use.html</a
+                        >
                     </p>
                     <label class="note" for="tablePinyinOutput"
-                        >pinyin only</label
+                        >拼音のみ</label
                     >
                     <textarea
                         id="tablePinyinOutput"
                         class="readonly-area"
                         readonly
                         spellcheck="false"
-                        aria-label="pinyin only"
+                        aria-label="拼音のみ"
                     ></textarea>
                 </div>
             </section>
@@ -622,7 +626,7 @@
             function renderTable(rows) {
                 if (rows.length === 0) {
                     tableWrap.innerHTML =
-                        '<div class="empty">入力すると、简体字・繁體字・pinyin を列ごとに表示します。</div>';
+                        '<div class="empty">入力すると、简体字・繁體字・拼音 を列ごとに表示します。</div>';
                     return;
                 }
 
@@ -630,7 +634,7 @@
                 const labels = [
                     ["简体字", "simplified"],
                     ["繁體字", "traditional"],
-                    ["pinyin", "pinyin"],
+                    ["拼音", "pinyin"],
                 ];
 
                 for (const [label, key] of labels) {
@@ -666,10 +670,10 @@
                 renderTable(result.rows);
 
                 if (pinyinMap.size === 0) {
-                    statusText.textContent = "data missing";
+                    statusText.textContent = "データ未読込";
                     statusText.className = "status is-warn";
                 } else if (!text) {
-                    statusText.textContent = "ready";
+                    statusText.textContent = "準備完了";
                     statusText.className = "status";
                 } else if (result.unknownHan > 0) {
                     statusText.textContent = `${result.unknownHan}文字未登録`;
@@ -688,7 +692,7 @@
                 try {
                     await navigator.clipboard.writeText(text);
                     const original = button.textContent;
-                    button.textContent = "Copied";
+                    button.textContent = "コピー済み";
                     setTimeout(() => {
                         button.textContent = original;
                     }, 900);

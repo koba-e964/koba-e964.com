@@ -6,7 +6,7 @@
 
 - `pages/`
   - GitHub Pages に配信するルート公開物
-  - `pinyin/`: `/pinyin/` に配信する静的な拼音 converter
+  - `pinyin/`: `/pinyin/` に配信する静的なリアルタイム拼音変換(簡易版)
 - `fund-price-forecast/`
   - ファンド価格予測くん一式
   - `site/`: `/fund-price-forecast/` に配信する静的ページ
