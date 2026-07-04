@@ -1,0 +1,34 @@
+{
+  "features": [
+    {
+      "id": "create-pinyin-page",
+      "description": "Create pages/pinyin/index.html with textarea, live pinyin output, simplified/traditional/pinyin table, and readonly pinyin-only textarea.",
+      "validation": "test -f pages/pinyin/index.html && rg \"拼音|简体字|繁體字|readonly\" pages/pinyin/index.html",
+      "passes": true
+    },
+    {
+      "id": "embed-dictionary-and-conversion",
+      "description": "Embed page-local character data and implement character-to-pinyin plus simplified/traditional conversion without runtime fetches.",
+      "validation": "rg \"PINYIN_DATA|toToneMarks|ri4 ben3\" pages/pinyin/index.html",
+      "passes": true
+    },
+    {
+      "id": "link-from-home",
+      "description": "Add a /pinyin/ card to pages/index.html.",
+      "validation": "rg \"/pinyin/\" pages/index.html",
+      "passes": true
+    },
+    {
+      "id": "update-readme",
+      "description": "Document the pinyin page in the root README public content list and structure notes.",
+      "validation": "rg \"/pinyin/|pinyin\" README.md",
+      "passes": true
+    },
+    {
+      "id": "validate-static-site",
+      "description": "Run available local validation after implementation.",
+      "validation": "pre-commit run --all-files",
+      "passes": true
+    }
+  ]
+}

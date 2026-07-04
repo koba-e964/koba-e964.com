@@ -6,6 +6,7 @@
 
 - `pages/`
   - GitHub Pages に配信するルート公開物
+  - `pinyin/`: `/pinyin/` に配信する静的な拼音 converter
 - `fund-price-forecast/`
   - ファンド価格予測くん一式
   - `site/`: `/fund-price-forecast/` に配信する静的ページ
@@ -31,11 +32,14 @@
 - `/atcoder-rating-estimator/`
   - AtCoder Rating Estimator
   - 詳細は [atcoder-rating-estimator/README.md](/Users/kobas-mac/srcview/koba-e964.com/atcoder-rating-estimator/README.md)
+- `/pinyin/`
+  - 漢字から拼音、簡体字、繁體字の対応をリアルタイム表示する静的ページ
 
 ## GitHub Pages
 
 - `.github/workflows/deploy-pages.yml` で `pages/` と `fund-price-forecast/site/` を組み立て、`tsumeshogi-web-solver` と `atcoder-rating-estimator` は upstream repo を clone して Pages に配信します。
 - `pages/` 直下にはトップページ、`CNAME`、`ads.txt` を置きます。
+- `pages/pinyin/` は `pages/` ごとコピーされ、`/pinyin/` として配信されます。
 - アプリごとの公開物は repo 内静的ファイルか upstream build のどちらかで持ち、workflow で公開パスへ配置します。
 
 ## 運用メモ
