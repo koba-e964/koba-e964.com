@@ -248,6 +248,18 @@
                 line-height: 1.3;
             }
 
+            .han-simplified {
+                font-family:
+                    "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+                    "Microsoft YaHei", SimSun, sans-serif;
+            }
+
+            .han-traditional {
+                font-family:
+                    "Noto Sans TC", "Source Han Sans TC", "PingFang TC",
+                    "Microsoft JhengHei", MingLiU, sans-serif;
+            }
+
             .pinyin-secondary {
                 display: block;
                 margin-top: 3px;
@@ -632,15 +644,16 @@
 
                 const table = document.createElement("table");
                 const labels = [
-                    ["简体字", "simplified"],
-                    ["繁體字", "traditional"],
-                    ["拼音", "pinyin"],
+                    ["简体字", "simplified", "han-simplified"],
+                    ["繁體字", "traditional", "han-traditional"],
+                    ["拼音", "pinyin", ""],
                 ];
 
-                for (const [label, key] of labels) {
+                for (const [label, key, className] of labels) {
                     const tr = document.createElement("tr");
                     const th = document.createElement("th");
                     th.scope = "row";
+                    if (className) th.className = className;
                     th.textContent = label;
                     tr.appendChild(th);
 
@@ -650,6 +663,7 @@
                             td.className = "pinyin-cell";
                             renderPinyinCell(td, row.readings);
                         } else {
+                            td.className = className;
                             td.textContent = row[key].join("/") || " ";
                         }
                         tr.appendChild(td);
