@@ -4,43 +4,43 @@
       "id": "generate-phrase-data",
       "description": "Add pages/pinyin/build-pinyin-phrase-data.mjs to generate phrase overrides from CC-CEDICT and current Unihan character data.",
       "validation": "node --check pages/pinyin/build-pinyin-phrase-data.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "commit-phrase-asset",
       "description": "Generate and commit pages/pinyin/pinyin-phrase-data.js exposing window.PINYIN_PHRASE_DATA.",
       "validation": "node --check pages/pinyin/pinyin-phrase-data.js && rg \"PINYIN_PHRASE_DATA\" pages/pinyin/pinyin-phrase-data.js",
-      "passes": false
+      "passes": true
     },
     {
       "id": "runtime-phrase-lookup",
       "description": "Update pages/pinyin/index.html to use generated phrase data with longest-match lookup before character fallback.",
       "validation": "node local smoke test confirms 银行, 銀行, 行长, 行長, 重庆, 重慶, 音乐, 音樂, 了解 readings",
-      "passes": false
+      "passes": true
     },
     {
       "id": "replace-manual-overrides",
       "description": "Remove the hand-written phrase override array from pages/pinyin/index.html.",
       "validation": "rg \"phrasePinyinOverrideEntries|\\[\\\"银行\\\"\" pages/pinyin/index.html returns no matches",
-      "passes": false
+      "passes": true
     },
     {
       "id": "document-source-license",
       "description": "Document CC-CEDICT source, CC BY-SA 4.0 license, regeneration command, and filtering rules in the page and README.",
       "validation": "rg \"CC-CEDICT|Creative Commons|by-sa/4.0|MDBG\" pages/pinyin/index.html pages/pinyin/README.md",
-      "passes": false
+      "passes": true
     },
     {
       "id": "track-size-risk",
       "description": "Update progress tracking with actual phrase asset size and gzip size, noting that the combined payload may still be large.",
       "validation": "rg \"phrase|gzip|大き\" codex-notes/pinyin-converter-unihan-upgrade/progress.toml codex-notes/pinyin-phrase-dictionary-upgrade/plan.md",
-      "passes": false
+      "passes": true
     },
     {
       "id": "run-validation",
       "description": "Run syntax checks, smoke tests, size checks, and repository validation after implementation.",
       "validation": "pre-commit run --all-files",
-      "passes": false
+      "passes": true
     }
   ]
 }

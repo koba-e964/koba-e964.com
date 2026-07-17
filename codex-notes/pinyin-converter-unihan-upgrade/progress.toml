@@ -2,12 +2,17 @@
 status = "未着手"
 created = "2026-07-04"
 context = "このリポジトリでは GitHub Issues が無効なので、TODO は repo 内で管理する。"
-current_raw_bytes = 971210
-current_gzip_bytes = 291723
-concern = "pinyin-data.js は約 2.1 MB から未圧縮で約 900 KB、gzip 圧縮時で約 300 KB まで縮小できた。大きな進歩ではあるが、静的ページの配信ファイルとしてまだ大きい可能性があり、gzip 圧縮時 300 KB が実利用でどの程度問題視されるかは未評価。"
+current_raw_bytes = 971228
+current_gzip_bytes = 283030
+phrase_raw_bytes = 638842
+phrase_gzip_bytes = 195526
+combined_raw_bytes = 1610070
+combined_gzip_bytes = 478556
+concern = "pinyin-data.js は約 2.1 MB から未圧縮で約 900 KB、gzip 圧縮時で約 300 KB まで縮小できた。CC-CEDICT 由来の語単位データを足すと未圧縮 1610070 bytes、gzip 圧縮時 478556 bytes になり、読みの正確さは改善するが静的ページの配信ファイルとしてまだ大きい可能性が高い。gzip 圧縮時 300 KB や 480 KB が実利用でどの程度問題視されるかは未評価。"
 next_steps = [
   "Unicode block ごとの遅延読み込みや部分読み込みを検討する。",
   "重複する読みや異体字対応をさらに小さく表現できるか検証する。",
+  "CC-CEDICT 由来の語単位データをさらに小さく表現できるか検証する。",
   "モバイルブラウザで構文解析時間と初回入力までの遅延を測る。",
   "/pinyin/ の配信ファイル容量上限を明示する。"
 ]

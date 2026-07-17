@@ -105,7 +105,7 @@ window.PINYIN_DATA = {
      - generation command
      - output file
      - coverage definition: all Unihan ideographs with Mandarin readings
-     - known limitation: no phrase-level disambiguation
+     - known limitation at the time: phrase-level disambiguation was deferred to `codex-notes/pinyin-phrase-dictionary-upgrade/`
 
 9. Validate.
    - Generator syntax:
@@ -135,7 +135,7 @@ window.PINYIN_DATA = {
 
 ## Risks
 
-- Unihan readings are character-level, so polyphonic word context is still not solved.
+- Unihan readings are character-level; phrase-level readings are handled by the follow-up `codex-notes/pinyin-phrase-dictionary-upgrade/` plan.
 - Some variant mappings are one-to-many or context-dependent; the table can show candidates but cannot guarantee word-level simplified/traditional conversion.
 - `kHanyuPinyin`, `kHanyuPinlu`, and `kXHC1983` formats need careful parsing.
 - Full generated data may be large and can affect page parse time.

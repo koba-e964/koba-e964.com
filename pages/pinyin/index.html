@@ -321,7 +321,7 @@
                 <h1>リアルタイム拼音変換(簡易版)</h1>
                 <p class="subtitle">
                     漢字を入力すると、拼音、簡体字、繁體字の対応をブラウザ内でリアルタイムに表示します。
-                    変換は文字単位です。
+                    CC-CEDICT 由来の語単位の読みも反映します。
                 </p>
             </header>
 
@@ -398,9 +398,16 @@
                     </div>
                     <p class="note">
                         Unicode Unihan データベース 17.0.0
-                        から生成した文字単位の読みを表示します。
+                        から生成した文字単位の読みと、CC-CEDICT から生成した語単位の読みを表示します。
                         まだ簡易版なので、イレギュラーなケースでは期待する読みが一番に出ないことがあります。
-                        多音字や語単位の読み分けは行いません。
+                        CC-CEDICT:
+                        <a href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict"
+                            >MDBG Chinese Dictionary</a
+                        >
+                        /
+                        <a href="https://creativecommons.org/licenses/by-sa/4.0/"
+                            >CC BY-SA 4.0</a
+                        >
                         Unicode データの利用条件:
                         <a href="https://www.unicode.org/terms_of_use.html"
                             >https://www.unicode.org/terms_of_use.html</a
@@ -421,6 +428,7 @@
         </main>
 
         <script src="./pinyin-data.js"></script>
+        <script src="./pinyin-phrase-data.js"></script>
         <script>
             const rawPinyinData = Array.isArray(window.PINYIN_DATA)
                 ? window.PINYIN_DATA
@@ -453,6 +461,33 @@
                         ],
                     ];
                 }),
+            );
+            const rawPhrasePinyinData = Array.isArray(
+                window.PINYIN_PHRASE_DATA,
+            )
+                ? window.PINYIN_PHRASE_DATA
+                : [];
+            const phraseByLength = new Map();
+            for (const entry of rawPhrasePinyinData) {
+                if (
+                    !Array.isArray(entry) ||
+                    typeof entry[0] !== "string" ||
+                    typeof entry[1] !== "string"
+                ) {
+                    continue;
+                }
+                const chars = Array.from(entry[0]);
+                const readings = entry[1].split(" ");
+                if (chars.length < 2 || chars.length !== readings.length) {
+                    continue;
+                }
+                if (!phraseByLength.has(chars.length)) {
+                    phraseByLength.set(chars.length, new Map());
+                }
+                phraseByLength.get(chars.length).set(entry[0], readings);
+            }
+            const phraseLengths = [...phraseByLength.keys()].sort(
+                (left, right) => right - left,
             );
 
             const toneMarks = {
@@ -569,6 +604,45 @@
                     : primary;
             }
 
+            function findPhraseOverride(chars, startIndex) {
+                for (const length of phraseLengths) {
+                    if (startIndex + length > chars.length) continue;
+                    const text = chars
+                        .slice(startIndex, startIndex + length)
+                        .join("");
+                    const readings = phraseByLength.get(length).get(text);
+                    if (readings) {
+                        return {
+                            chars: chars.slice(startIndex, startIndex + length),
+                            readings,
+                        };
+                    }
+                }
+                return null;
+            }
+
+            function convertKnownChar(char, readings) {
+                const entry = pinyinMap.get(char);
+                if (!entry) return null;
+                return {
+                    simplified: entry.simplified,
+                    traditional: entry.traditional,
+                    readings,
+                };
+            }
+
+            function convertPhraseOverride(phrase) {
+                const rows = [];
+                for (let index = 0; index < phrase.chars.length; index += 1) {
+                    const row = convertKnownChar(phrase.chars[index], [
+                        phrase.readings[index],
+                    ]);
+                    if (!row) return null;
+                    rows.push(row);
+                }
+                return rows;
+            }
+
             function convertText(text) {
                 const rows = [];
                 const numericParts = [];
@@ -576,8 +650,32 @@
                 const tablePinyinParts = [];
                 let known = 0;
                 let unknownHan = 0;
+                const chars = Array.from(text);
 
-                for (const char of Array.from(text)) {
+                for (let index = 0; index < chars.length; index += 1) {
+                    const phrase = findPhraseOverride(chars, index);
+                    if (phrase) {
+                        const phraseRows = convertPhraseOverride(phrase);
+                        if (phraseRows) {
+                            for (const row of phraseRows) {
+                                known += 1;
+                                appendToken(numericParts, row.readings[0]);
+                                appendToken(
+                                    markedParts,
+                                    toToneMarks(row.readings[0]),
+                                );
+                                appendToken(
+                                    tablePinyinParts,
+                                    formatAlternativeNumeric(row.readings),
+                                );
+                                rows.push(row);
+                            }
+                            index += phraseRows.length - 1;
+                            continue;
+                        }
+                    }
+
+                    const char = chars[index];
                     const entry = pinyinMap.get(char);
                     if (entry) {
                         known += 1;
