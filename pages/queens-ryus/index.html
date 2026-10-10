@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Queens 手筋</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        line-height: 1.6;
+      }
+
+      .groups {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .group {
+        border: 1px solid #ccc;
+        padding: 8px;
+      }
+
+      .grid {
+        border-collapse: collapse;
+      }
+
+      .grid td {
+        border: 1px solid #999;
+        width: 24px;
+        height: 24px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Queens 手筋</h1>
+
+    <h2>小さい n の全列挙</h2>
+    n*n の盤面に配置する方法を列挙する。これは<a href="https://oeis.org/A002464">Hertzsprung's problem</a>と呼ばれている。
+
+    <h3>n = 4</h3>
+    <div class="groups">
+      <div class="group">
+        <div>2413 (2)</div>
+        <table class="grid">
+          <tr><td>.</td><td>Q</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>Q</td></tr>
+          <tr><td>Q</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>Q</td><td>.</td></tr>
+        </table>
+        <pre>2413
+3142</pre>
+      </div>
+    </div>
+    <details>
+      <summary>raw output</summary>
+      <pre>2413
+3142</pre>
+    </details>
+
+    <h3>n = 5</h3>
+    <div class="groups">
+      <div class="group">
+        <div>13524 (8)</div>
+        <table class="grid">
+          <tr><td>Q</td><td>.</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>Q</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>.</td><td>Q</td></tr>
+          <tr><td>.</td><td>Q</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>Q</td><td>.</td></tr>
+        </table>
+        <pre>13524
+14253
+24135
+31425
+35241
+42531
+52413
+53142</pre>
+      </div>
+      <div class="group">
+        <div>24153 (4)</div>
+        <table class="grid">
+          <tr><td>.</td><td>Q</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>Q</td><td>.</td></tr>
+          <tr><td>Q</td><td>.</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>.</td><td>Q</td></tr>
+          <tr><td>.</td><td>.</td><td>Q</td><td>.</td><td>.</td></tr>
+        </table>
+        <pre>24153
+31524
+35142
+42513</pre>
+      </div>
+      <div class="group">
+        <div>25314 (2)</div>
+        <table class="grid">
+          <tr><td>.</td><td>Q</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>.</td><td>Q</td></tr>
+          <tr><td>.</td><td>.</td><td>Q</td><td>.</td><td>.</td></tr>
+          <tr><td>Q</td><td>.</td><td>.</td><td>.</td><td>.</td></tr>
+          <tr><td>.</td><td>.</td><td>.</td><td>Q</td><td>.</td></tr>
+        </table>
+        <pre>25314
+41352</pre>
+      </div>
+    </div>
+    <details>
+      <summary>raw output</summary>
+      <pre>13524
+14253
+24135
+24153
+25314
+31425
+31524
+35142
+35241
+41352
+42513
+42531
+52413
+53142</pre>
+    </details>
+
+    <h3>n = 6</h3>
+    <details>
+      <summary>raw output</summary>
+      <pre>135246
+135264
+136425
+142536
+142635
+146253
+146352
+152463
+153624
+153642
+163524
+164253
+241536
+241635
+246135
+246153
+246315
+246351
+251364
+251463
+253146
+253164
+253614
+253641
+263514
+264135
+264153
+314625
+315246
+315264
+316425
+351426
+351462
+351624
+351642
+352416
+352461
+352614
+352641
+361425
+361524
+362415
+362514
+364152
+364251
+413526
+413625
+415263
+415362
+416253
+416352
+425136
+425163
+425316
+425361
+426135
+426153
+426315
+426351
+461352
+462513
+462531
+463152
+513624
+513642
+514263
+524136
+524163
+524613
+524631
+526314
+526413
+531426
+531462
+531624
+531642
+536142
+536241
+613524
+614253
+624135
+624153
+625314
+631425
+631524
+635142
+635241
+641352
+642513
+642531</pre>
+    </details>
+  </body>
+</html>
